@@ -6,28 +6,62 @@
     <title>CheckAi - Menu Principal</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        :root { --primary: #3498db; --success: #2ecc71; --warning: #f39c12; --danger: #e74c3c; --dark: #2c3e50; --light: #f4f7f6; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--light); margin: 0; display: flex; align-items: center; justify-content: center; min-height: 100vh; }
-        .container { background: white; padding: 40px; border-radius: 40px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); text-align: center; width: 90%; max-width: 450px; margin: 20px; }
+        :root { 
+            --primary: #3498db; --success: #2ecc71; --warning: #f39c12; 
+            --danger: #e74c3c; --dark: #2c3e50; --light: #f4f7f6; --gray: #bdc3c7;
+        }
+
+        body { 
+            font-family: 'Segoe UI', sans-serif; background: var(--light); 
+            margin: 0; display: flex; align-items: center; justify-content: center; min-height: 100vh; 
+        }
+
+        .container {
+            background: white; padding: 40px; border-radius: 40px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1); text-align: center;
+            width: 90%; max-width: 450px; margin: 20px;
+        }
+
         .app-logo { font-size: 38px; font-weight: 900; color: var(--dark); margin-bottom: 10px; letter-spacing: -1.5px; }
         .app-logo span { color: var(--primary); }
+
         .welcome-section { margin-bottom: 35px; }
         .user-name { color: var(--dark); font-weight: 800; font-size: 28px; display: block; margin-top: 5px; }
         
         .menu-grid { display: flex; flex-direction: column; gap: 15px; }
+
         .menu-item {
             display: flex; align-items: center; padding: 20px; border-radius: 20px;
             text-decoration: none; transition: 0.3s; border: none; cursor: pointer;
+            position: relative;
         }
-        .menu-item i { font-size: 30px; margin-right: 20px; width: 40px; }
+
+        .menu-item i { font-size: 28px; margin-right: 20px; width: 40px; text-align: center; }
         .menu-item span { font-weight: 700; font-size: 16px; text-transform: uppercase; }
 
+        /* Estilos Ativos */
         .btn-ocorrencias { background: #e3f2fd; color: #1976d2; }
         .btn-indicadores { background: #e8f5e9; color: #2e7d32; }
         .btn-pendencias { background: #fff3e0; color: #ef6c00; border: 2px solid #ffe0b2; }
         .btn-usuarios { background: #f3e5f5; color: #7b1fa2; margin-top: 10px; border: 2px dashed #e1bee7; }
-        
-        .menu-item:hover { transform: scale(1.02); filter: brightness(0.95); }
+
+        /* Estilo Inativo (Cinza) */
+        .menu-item.disabled {
+            background: #f5f5f5 !important;
+            color: #b0b0b0 !important;
+            border: 2px solid #e0e0e0 !important;
+            cursor: not-allowed !important;
+            filter: grayscale(1);
+        }
+
+        /* Contador de Pendências */
+        .badge-count {
+            position: absolute; right: 20px; background: var(--danger);
+            color: white; font-size: 12px; font-weight: bold;
+            padding: 4px 10px; border-radius: 50px;
+        }
+
+        .menu-item:not(.disabled):hover { transform: scale(1.02); filter: brightness(0.95); }
 
         .footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; }
         .btn-logout { background: #fff5f5; color: var(--danger); border: 2px solid #fed7d7; padding: 10px 25px; border-radius: 12px; font-weight: 800; cursor: pointer; }
@@ -48,8 +82,10 @@
             <i class="fas fa-tasks"></i> <span>Gestão Operacional</span>
         </a>
 
-        <a href="pendencias.html" class="menu-item btn-pendencias">
-            <i class="fas fa-exclamation-circle"></i> <span>Pendências</span>
+        <a href="pendencias.html" id="btnPendencias" class="menu-item btn-pendencias">
+            <i class="fas fa-exclamation-circle"></i> 
+            <span>Pendências</span>
+            <div id="countPendencias" class="badge-count" style="display: none;">0</div>
         </a>
 
         <a href="indicadores.html" class="menu-item btn-indicadores">
@@ -74,7 +110,38 @@
         if (!sessao) { window.location.replace('login.html'); return; }
 
         document.getElementById('nomeDisplay').innerText = sessao.nome;
-        if (sessao.user === 'admin') { document.getElementById('areaAdmin').style.display = 'block'; }
+        
+        // Mostrar área admin
+        if (sessao.user === 'admin') { 
+            document.getElementById('areaAdmin').style.display = 'block'; 
+        }
+
+        // --- LÓGICA DO BOTÃO DE PENDÊNCIAS ---
+        const btnPendencias = document.getElementById('btnPendencias');
+        const badgeCount = document.getElementById('countPendencias');
+        const ocorrencias = JSON.parse(localStorage.getItem('ocorrencias') || '[]');
+
+        // Filtra pendências de acordo com o perfil
+        const pendenciasUsuario = ocorrencias.filter(o => {
+            if (sessao.perfil === 'Gestor' || sessao.user === 'admin') {
+                return o.status_fluxo === "Solicitado: Concluir" || o.status_fluxo === "Solicitado: Cancelar";
+            } else {
+                return o.status_fluxo === "Reprovado" && o.responsavel_login === sessao.user;
+            }
+        });
+
+        if (pendenciasUsuario.length > 0) {
+            // Se houver pendências: Ativa botão e mostra contador
+            badgeCount.innerText = pendenciasUsuario.length;
+            badgeCount.style.display = 'block';
+        } else {
+            // Se não houver: Desativa botão (fica cinza)
+            btnPendencias.classList.add('disabled');
+            btnPendencias.onclick = function(e) { 
+                e.preventDefault(); 
+                return false; 
+            };
+        }
     });
 
     function fazerLogout() {
