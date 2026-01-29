@@ -3,43 +3,60 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pendências - CheckAi</title>
+    <title>Pendências de Aprovação - CheckAi</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         body { font-family: 'Segoe UI', sans-serif; background: #f4f7f6; margin: 0; padding: 20px; }
         .container { max-width: 800px; margin: auto; }
-        .card { background: white; border-radius: 20px; padding: 25px; margin-bottom: 15px; box-shadow: 0 8px 20px rgba(0,0,0,0.05); border-left: 10px solid #3498db; }
-        .actions { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; }
-        .btn { border: none; padding: 12px 20px; border-radius: 10px; cursor: pointer; font-weight: bold; color: white; display: flex; align-items: center; gap: 8px; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
+        
+        .card { 
+            background: white; border-radius: 20px; padding: 25px; margin-bottom: 15px; 
+            box-shadow: 0 8px 20px rgba(0,0,0,0.05); position: relative; border-left: 10px solid #3498db;
+        }
+        
+        /* Cores por tipo de solicitação */
+        .tipo-concluir { border-left-color: #2ecc71; }
+        .tipo-cancelar { border-left-color: #e67e22; }
+
+        .badge-tipo { 
+            display: inline-block; padding: 5px 12px; border-radius: 8px; 
+            font-size: 11px; font-weight: bold; text-transform: uppercase; margin-bottom: 10px;
+        }
+        .bg-concluir { background: #e8f5e9; color: #2e7d32; }
+        .bg-cancelar { background: #fff3e0; color: #e67e22; }
+
+        .actions { display: flex; gap: 10px; margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px; }
+        .btn { 
+            border: none; padding: 12px 18px; border-radius: 10px; cursor: pointer; 
+            font-weight: bold; color: white; display: flex; align-items: center; gap: 8px; flex: 1; justify-content: center;
+        }
         .btn-view { background: #34495e; }
         .btn-approve { background: #2ecc71; }
         .btn-reject { background: #e74c3c; }
-        
-        /* Modal de Detalhes */
-        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); overflow-y: auto; padding: 20px; box-sizing: border-box; }
-        .modal-content { background: white; max-width: 600px; margin: 20px auto; padding: 30px; border-radius: 25px; position: relative; }
-        .detail-item { border-bottom: 1px solid #eee; padding: 10px 0; display: flex; justify-content: space-between; }
-        .detail-label { font-weight: bold; color: #7f8c8d; text-transform: uppercase; font-size: 12px; }
-        .detail-value { color: #2c3e50; font-weight: 600; text-align: right; max-width: 60%; }
-        .close-modal { position: absolute; top: 20px; right: 20px; font-size: 24px; cursor: pointer; color: #95a5a6; }
+
+        /* Modal */
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); padding: 20px; box-sizing: border-box; }
+        .modal-content { background: white; max-width: 500px; margin: auto; padding: 30px; border-radius: 25px; position: relative; top: 50%; transform: translateY(-50%); }
+        .detail-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-        <a href="index.html" style="text-decoration:none; color:#3498db; font-weight:bold;">← Voltar</a>
-        <h2 id="tituloPagina">Itens para sua Aprovação</h2>
+    <div class="header">
+        <a href="index.html" style="text-decoration:none; color:#3498db; font-weight:bold;"><i class="fas fa-arrow-left"></i> Voltar</a>
+        <h2 style="margin:0; color: #2c3e50;">Painel de Pendências</h2>
     </div>
+    
     <div id="listaPendencias"></div>
 </div>
 
 <div id="modalDetalhes" class="modal">
     <div class="modal-content">
-        <span class="close-modal" onclick="fecharModal()">&times;</span>
-        <h2 style="color:#2c3e50; border-bottom: 2px solid #3498db; padding-bottom:10px;">Detalhes da Ocorrência</h2>
+        <h3 id="detalheTitulo" style="margin-top:0;">Detalhes do Registro</h3>
         <div id="corpoDetalhes"></div>
-        <button class="btn btn-approve" style="width:100%; margin-top:20px; justify-content:center;" onclick="fecharModal()">FECHAR CONSULTA</button>
+        <button onclick="fecharModal()" class="btn" style="background:#bdc3c7; margin-top:20px; width:100%;">FECHAR</button>
     </div>
 </div>
 
@@ -50,68 +67,81 @@
         const lista = document.getElementById('listaPendencias');
         const ocorrencias = JSON.parse(localStorage.getItem('ocorrencias') || '[]');
         
-        // Filtra o que está aguardando aprovação
-        const filtrados = ocorrencias.filter(o => o.status_fluxo === "Solicitado: Concluir");
+        // Filtra SOLICITAÇÕES DE CONCLUIR ou CANCELAR
+        const pendencias = ocorrencias.filter(o => 
+            o.status_fluxo === "Solicitado: Concluir" || 
+            o.status_fluxo === "Solicitado: Cancelar"
+        );
 
-        if (filtrados.length === 0) {
-            lista.innerHTML = "<p style='text-align:center; color:gray;'>Nenhuma pendência no momento.</p>";
+        if (pendencias.length === 0) {
+            lista.innerHTML = `<div style="text-align:center; padding:50px; color:gray;">Nenhuma solicitação aguardando aprovação.</div>`;
             return;
         }
 
-        lista.innerHTML = filtrados.map(o => `
-            <div class="card">
-                <h3 style="margin-top:0;">${o.descricao}</h3>
-                <p><strong>Local:</strong> ${o.setor} | ${o.local}</p>
-                <div class="actions">
-                    <button class="btn btn-view" onclick="verDetalhes(${o.id})"><i class="fas fa-eye"></i> VER DETALHES</button>
-                    <button class="btn btn-approve" onclick="decidir(${o.id}, 'Concluído')"><i class="fas fa-check"></i> APROVAR</button>
-                    <button class="btn btn-reject" onclick="reprovar(${o.id})"><i class="fas fa-times"></i> REPROVAR</button>
+        lista.innerHTML = pendencias.map(o => {
+            const ehCancelamento = o.status_fluxo.includes("Cancelar");
+            return `
+                <div class="card ${ehCancelamento ? 'tipo-cancelar' : 'tipo-concluir'}">
+                    <span class="badge-tipo ${ehCancelamento ? 'bg-cancelar' : 'bg-concluir'}">
+                        ${ehCancelamento ? 'Pedido de Cancelamento' : 'Pedido de Conclusão'}
+                    </span>
+                    <h3 style="margin:0;">${o.descricao}</h3>
+                    <p style="font-size:14px; color:gray;"><strong>Local:</strong> ${o.setor} | ${o.local}</p>
+                    <p style="font-size:13px; background:#f9f9f9; padding:10px; border-radius:8px;">
+                        <strong>Justificativa do Colaborador:</strong><br>${o.ultima_obs || 'Sem observações'}
+                    </p>
+                    
+                    <div class="actions">
+                        <button class="btn btn-view" onclick="verDetalhes(${o.id})"><i class="fas fa-eye"></i> VER TUDO</button>
+                        <button class="btn btn-approve" onclick="finalizar(${o.id}, true)"><i class="fas fa-check"></i> APROVAR</button>
+                        <button class="btn btn-reject" onclick="finalizar(${o.id}, false)"><i class="fas fa-times"></i> REPROVAR</button>
+                    </div>
                 </div>
-            </div>
-        `).join('');
+            `;
+        }).join('');
     }
 
     function verDetalhes(id) {
         const o = JSON.parse(localStorage.getItem('ocorrencias')).find(x => x.id === id);
         const corpo = document.getElementById('corpoDetalhes');
-        
-        // Mapeia todos os campos dinamicamente
-        const camposOcultos = ['id', 'status_fluxo', 'responsavel_login'];
         let html = "";
         
-        for (let chave in o) {
-            if (!camposOcultos.includes(chave) && o[chave]) {
-                html += `
-                    <div class="detail-item">
-                        <span class="detail-label">${chave.replace('_', ' ')}</span>
-                        <span class="detail-value">${o[chave]}</span>
-                    </div>`;
-            }
-        }
+        // Campos que queremos mostrar na íntegra
+        const campos = ["prioridade", "setor", "local", "descricao", "data_registro", "responsavel_login"];
         
+        campos.forEach(campo => {
+            if(o[campo]) {
+                html += `<div class="detail-row">
+                            <strong style="text-transform:uppercase; font-size:12px; color:gray;">${campo}</strong>
+                            <span>${o[campo]}</span>
+                         </div>`;
+            }
+        });
+
         corpo.innerHTML = html;
         document.getElementById('modalDetalhes').style.display = 'block';
     }
 
     function fecharModal() { document.getElementById('modalDetalhes').style.display = 'none'; }
 
-    function decidir(id, status) {
-        let dados = JSON.parse(localStorage.getItem('ocorrencias'));
-        let idx = dados.findIndex(o => o.id === id);
-        dados[idx].status_fluxo = status;
-        localStorage.setItem('ocorrencias', JSON.stringify(dados));
-        alert("Ação realizada!");
-        carregar();
-    }
+    function finalizar(id, aprovado) {
+        let ocorrencias = JSON.parse(localStorage.getItem('ocorrencias'));
+        let idx = ocorrencias.findIndex(o => o.id === id);
+        const statusAtual = ocorrencias[idx].status_fluxo;
 
-    function reprovar(id) {
-        const motivo = prompt("Motivo da Reprovação:");
-        if(!motivo) return;
-        let dados = JSON.parse(localStorage.getItem('ocorrencias'));
-        let idx = dados.findIndex(o => o.id === id);
-        dados[idx].status_fluxo = "Reprovado";
-        dados[idx].motivo_reprovacao = motivo;
-        localStorage.setItem('ocorrencias', JSON.stringify(dados));
+        if (aprovado) {
+            // Se aprovou Concluir -> Status vira Concluído. Se aprovou Cancelar -> Status vira Cancelado.
+            ocorrencias[idx].status_fluxo = statusAtual.includes("Concluir") ? "Concluído" : "Cancelado";
+            alert("Solicitação Aprovada com sucesso!");
+        } else {
+            const motivo = prompt("Motivo da Reprovação (será enviado ao colaborador):");
+            if (!motivo) return;
+            ocorrencias[idx].status_fluxo = "Reprovado";
+            ocorrencias[idx].motivo_reprovacao = motivo;
+            alert("Solicitação Reprovada. O item voltou para o colaborador.");
+        }
+
+        localStorage.setItem('ocorrencias', JSON.stringify(ocorrencias));
         carregar();
     }
 
