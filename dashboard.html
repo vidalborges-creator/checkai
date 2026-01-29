@@ -8,96 +8,68 @@
     <style>
         body { font-family: 'Segoe UI', sans-serif; background: #f4f7f6; margin: 0; padding: 20px; }
         .container { max-width: 900px; margin: auto; }
-        
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
         .back-link { text-decoration: none; color: #3498db; font-weight: bold; }
         
+        /* Estilo do Botão Novo Registro */
         .btn-novo { 
-            background: #2ecc71; color: white; text-decoration: none; padding: 12px 20px; 
-            border-radius: 12px; font-weight: bold; display: inline-flex; align-items: center; gap: 8px;
-            box-shadow: 0 4px 12px rgba(46,204,113,0.3); transition: 0.3s;
+            background: #2ecc71; color: white; text-decoration: none; padding: 15px 25px; 
+            border-radius: 12px; font-weight: bold; display: inline-flex; align-items: center; gap: 10px;
+            box-shadow: 0 4px 15px rgba(46,204,113,0.3); transition: 0.3s; margin-bottom: 30px;
         }
         .btn-novo:hover { transform: translateY(-2px); background: #27ae60; }
 
-        /* Estilo dos Cards de Ocorrência */
+        /* Cards de Ocorrência */
         .card { 
             background: white; border-radius: 18px; padding: 20px; margin-bottom: 15px; 
             box-shadow: 0 5px 15px rgba(0,0,0,0.05); display: flex; justify-content: space-between; 
-            align-items: center; border-left: 8px solid #ddd; transition: 0.3s;
+            align-items: center; border-left: 8px solid #ddd; 
         }
-        .card:hover { transform: scale(1.01); }
-        
         .info h3 { margin: 0; color: #2c3e50; font-size: 18px; }
         .info p { margin: 5px 0 0; color: #7f8c8d; font-size: 14px; }
-        
         .prio-badge { 
             font-size: 10px; font-weight: bold; padding: 4px 10px; border-radius: 6px; 
-            color: white; text-transform: uppercase; margin-bottom: 8px; display: inline-block;
+            color: white; text-transform: uppercase; display: inline-block; margin-bottom: 8px;
         }
-
-        .actions { display: flex; gap: 10px; }
         .btn-view { 
             width: 45px; height: 45px; border-radius: 50%; background: #2c3e50; 
-            color: white; border: none; cursor: pointer; display: flex; align-items: center; 
-            justify-content: center; font-size: 18px; 
+            color: white; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center;
         }
     </style>
 </head>
 <body>
-
     <div class="container">
         <div class="header">
-            <a href="index.html" class="back-link">← Voltar ao Menu</a>
+            <a href="index.html" class="back-link">← Voltar ao Menu Principal</a>
             <h2 style="margin:0;">Painel de Controle</h2>
         </div>
 
-        <div style="margin-bottom: 25px;">
-            <a href="registro.html" class="btn-novo"><i class="fas fa-plus"></i> NOVO REGISTRO</a>
-        </div>
+        <a href="registro.html" class="btn-novo">
+            <i class="fas fa-plus"></i> NOVO REGISTRO
+        </a>
 
         <div id="listaOcorrencias">
             </div>
     </div>
 
     <script>
-        function carregarDados() {
+        function carregarOcorrencias() {
             const container = document.getElementById('listaOcorrencias');
-            const dados = JSON.parse(localStorage.getItem('ocorrencias') || '[]');
-            
-            if (dados.length === 0) {
-                container.innerHTML = `
-                    <div style="text-align:center; padding: 50px; color: #999;">
-                        <i class="fas fa-folder-open" style="font-size: 40px; margin-bottom: 10px;"></i>
-                        <p>Nenhuma ocorrência registrada ainda.</p>
-                    </div>`;
+            const ocorrencias = JSON.parse(localStorage.getItem('ocorrencias') || '[]');
+
+            if (ocorrencias.length === 0) {
+                container.innerHTML = "<p style='text-align:center; color:#999;'>Nenhum registro encontrado.</p>";
                 return;
             }
 
-            container.innerHTML = dados.map(occ => {
-                const corPrio = occ.prioridade === 'Alta' ? '#e74c3c' : (occ.prioridade === 'Média' ? '#f1c40f' : '#2ecc71');
+            container.innerHTML = ocorrencias.map(occ => {
+                const cor = occ.prioridade === 'Alta' ? '#e74c3c' : (occ.prioridade === 'Média' ? '#f1c40f' : '#2ecc71');
                 return `
-                    <div class="card" style="border-left-color: ${corPrio}">
+                    <div class="card" style="border-left-color: ${cor}">
                         <div class="info">
-                            <span class="prio-badge" style="background: ${corPrio}">${occ.prioridade}</span>
-                            <h3>${occ.setor} - ${occ.local}</h3>
+                            <span class="prio-badge" style="background:${cor}">${occ.prioridade}</span>
+                            <h3>${occ.setor || 'Setor'} - ${occ.local || 'Local'}</h3>
                             <p><strong>Status:</strong> ${occ.status || 'Em Aberto'}</p>
-                            <p><strong>Previsão:</strong> ${occ.conclusao || '---'}</p>
+                            <p><strong>Previsão:</strong> ${occ.conclusao || 'S/Data'}</p>
                         </div>
-                        <div class="actions">
-                            <button class="btn-view" onclick="verDetalhes(${occ.id})">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        function verDetalhes(id) {
-            window.location.href = `detalhes.html?id=${id}`;
-        }
-
-        window.onload = carregarDados;
-    </script>
-</body>
-</html>
+                        <button class="btn-view" onclick="
