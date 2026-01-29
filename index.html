@@ -6,100 +6,31 @@
     <title>CheckAi - Menu Principal</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        :root {
-            --primary: #3498db;
-            --success: #2ecc71;
-            --warning: #f39c12;
-            --danger: #e74c3c;
-            --dark: #2c3e50;
-            --light: #f4f7f6;
-        }
-
-        body { 
-            font-family: 'Segoe UI', Roboto, sans-serif; 
-            background: var(--light); 
-            margin: 0; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            min-height: 100vh; 
-        }
-
-        .container {
-            background: white;
-            padding: 40px;
-            border-radius: 40px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-            text-align: center;
-            width: 90%;
-            max-width: 450px;
-            margin: 20px;
-        }
-
-        /* Logo Estilizada */
-        .app-logo {
-            font-size: 38px;
-            font-weight: 900;
-            color: var(--dark);
-            margin-bottom: 10px;
-            letter-spacing: -1.5px;
-        }
+        :root { --primary: #3498db; --success: #2ecc71; --warning: #f39c12; --danger: #e74c3c; --dark: #2c3e50; --light: #f4f7f6; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--light); margin: 0; display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+        .container { background: white; padding: 40px; border-radius: 40px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); text-align: center; width: 90%; max-width: 450px; margin: 20px; }
+        .app-logo { font-size: 38px; font-weight: 900; color: var(--dark); margin-bottom: 10px; letter-spacing: -1.5px; }
         .app-logo span { color: var(--primary); }
-
         .welcome-section { margin-bottom: 35px; }
-        .welcome-section h1 { font-size: 22px; color: #7f8c8d; margin: 0; font-weight: 400; }
         .user-name { color: var(--dark); font-weight: 800; font-size: 28px; display: block; margin-top: 5px; }
-
-        /* Grid de Botões */
-        .menu-grid { display: flex; flex-direction: column; gap: 20px; }
-
+        
+        .menu-grid { display: flex; flex-direction: column; gap: 15px; }
         .menu-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 30px;
-            border-radius: 25px;
-            text-decoration: none;
-            transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            border: none;
-            cursor: pointer;
+            display: flex; align-items: center; padding: 20px; border-radius: 20px;
+            text-decoration: none; transition: 0.3s; border: none; cursor: pointer;
         }
-
-        /* Ícones Grandes */
-        .menu-item i { font-size: 50px; margin-bottom: 15px; }
-        .menu-item span { font-weight: 700; font-size: 16px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .menu-item i { font-size: 30px; margin-right: 20px; width: 40px; }
+        .menu-item span { font-weight: 700; font-size: 16px; text-transform: uppercase; }
 
         .btn-ocorrencias { background: #e3f2fd; color: #1976d2; }
-        .btn-ocorrencias:hover { background: #1976d2; color: white; transform: translateY(-5px); }
-
         .btn-indicadores { background: #e8f5e9; color: #2e7d32; }
-        .btn-indicadores:hover { background: #2e7d32; color: white; transform: translateY(-5px); }
+        .btn-pendencias { background: #fff3e0; color: #ef6c00; border: 2px solid #ffe0b2; }
+        .btn-usuarios { background: #f3e5f5; color: #7b1fa2; margin-top: 10px; border: 2px dashed #e1bee7; }
+        
+        .menu-item:hover { transform: scale(1.02); filter: brightness(0.95); }
 
-        .btn-usuarios { background: #fff8e1; color: #f57c00; border: 2px dashed #ffe082; }
-        .btn-usuarios:hover { background: #f57c00; color: white; border-style: solid; transform: translateY(-5px); }
-
-        /* Rodapé e Logout */
-        .footer {
-            margin-top: 40px;
-            padding-top: 20px;
-            border-top: 1px solid #eee;
-        }
-
-        .btn-logout {
-            background: #fff5f5;
-            color: var(--danger);
-            border: 2px solid #fed7d7;
-            padding: 12px 30px;
-            border-radius: 15px;
-            font-weight: 800;
-            cursor: pointer;
-            transition: 0.2s;
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .btn-logout:hover { background: var(--danger); color: white; border-color: var(--danger); }
+        .footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; }
+        .btn-logout { background: #fff5f5; color: var(--danger); border: 2px solid #fed7d7; padding: 10px 25px; border-radius: 12px; font-weight: 800; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -108,63 +39,48 @@
     <div class="app-logo">Check<span>Ai</span></div>
     
     <div class="welcome-section">
-        <h1>Olá, Bem-vindo!</h1>
-        <div class="user-name" id="nomeDisplay">Usuário</div>
+        <h1 style="font-size: 18px; color: gray; margin:0;">Bem-vindo,</h1>
+        <div class="user-name" id="nomeDisplay">Carregando...</div>
     </div>
 
     <div class="menu-grid">
         <a href="dashboard.html" class="menu-item btn-ocorrencias">
-            <i class="fas fa-clipboard-check"></i>
-            <span>Gestão de Ocorrências</span>
+            <i class="fas fa-tasks"></i> <span>Gestão Operacional</span>
+        </a>
+
+        <a href="pendencias.html" class="menu-item btn-pendencias">
+            <i class="fas fa-exclamation-circle"></i> <span>Pendências</span>
         </a>
 
         <a href="indicadores.html" class="menu-item btn-indicadores">
-            <i class="fas fa-chart-pie"></i>
-            <span>Painel de Indicadores</span>
+            <i class="fas fa-chart-line"></i> <span>Indicadores</span>
         </a>
 
         <div id="areaAdmin" style="display: none;">
             <a href="usuarios.html" class="menu-item btn-usuarios">
-                <i class="fas fa-users-cog"></i>
-                <span>Gerenciar Usuários</span>
+                <i class="fas fa-users-cog"></i> <span>Gerenciar Equipe</span>
             </a>
         </div>
     </div>
 
     <div class="footer">
-        <button class="btn-logout" onclick="fazerLogout()">
-            <i class="fas fa-power-off"></i> SAIR DO SISTEMA
-        </button>
+        <button class="btn-logout" onclick="fazerLogout()">SAIR DO SISTEMA</button>
     </div>
 </div>
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Recupera a sessão do usuário
         const sessao = JSON.parse(localStorage.getItem('usuarioLogado'));
+        if (!sessao) { window.location.replace('login.html'); return; }
 
-        if (!sessao) {
-            // Se não houver sessão, volta para o login
-            window.location.replace('login.html');
-            return;
-        }
-
-        // 1. Atualiza a saudação com o nome real
-        const nomeUsuario = sessao.nome || sessao.user || "Usuário";
-        document.getElementById('nomeDisplay').innerText = nomeUsuario;
-
-        // 2. Verifica se é admin para mostrar o botão de Gerenciar Usuários
-        if (sessao.user === 'admin') {
-            document.getElementById('areaAdmin').style.display = 'block';
-        }
+        document.getElementById('nomeDisplay').innerText = sessao.nome;
+        if (sessao.user === 'admin') { document.getElementById('areaAdmin').style.display = 'block'; }
     });
 
-    // Função de Logout Corrigida
     function fazerLogout() {
         localStorage.removeItem('usuarioLogado');
         window.location.replace('login.html');
     }
 </script>
-
 </body>
 </html>

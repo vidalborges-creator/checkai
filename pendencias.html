@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pendências de Aprovação - CheckAi</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #f4f7f6; margin: 0; padding: 20px; }
+        .container { max-width: 800px; margin: auto; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .card { background: white; border-radius: 20px; padding: 20px; margin-bottom: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); border-left: 10px solid #3498db; }
+        .status-wait { color: #f39c12; font-weight: bold; }
+        .status-repro { color: #e74c3c; font-weight: bold; }
+        .actions { display: flex; gap: 10px; margin-top: 15px; border-top: 1px solid #eee; padding-top: 15px; }
+        .btn { border: none; padding: 10px 20px; border-radius: 10px; cursor: pointer; font-weight: bold; color: white; display: flex; align-items: center; gap: 8px; }
+        .btn-approve { background: #2ecc71; }
+        .btn-reject { background: #e74c3c; }
+        .badge-perfil { background: #34495e; color: white; padding: 5px 12px; border-radius: 20px; font-size: 12px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <a href="index.html" style="text-decoration:none; color:#3498db; font-weight:bold;">← Voltar</a>
+        <span id="perfilTag" class="badge-perfil">Carregando...</span>
+    </div>
+    
+    <h2 id="tituloPagina">Pendências</h2>
+    <div id="listaPendencias"></div>
+</div>
+
+<script>
+    const sessao = JSON.parse(localStorage.getItem('usuarioLogado'));
+
+    function carregarPendencias() {
+        const lista = document.getElementById('listaPendencias');
+        const ocorrencias = JSON.parse(localStorage.getItem('ocorrencias') || '[]');
+        document.getElementById('perfilTag').innerText = sessao.perfil + ": " + sessao.nome;
+
+        let filtrados = [];
+
+        if (sessao.perfil === 'Gestor' || sessao.user === 'admin') {
+            document.getElementById('tituloPagina').innerText = "Itens para sua Aprovação";
+            // Gestor vê o que o colaborador enviou para concluir
+            filtrados = ocorrencias.filter(o => o.status_fluxo === "Solicitado: Concluir");
+        } else {
+            document.getElementById('tituloPagina').innerText = "Minhas Correções (Reprovados)";
+            // Colaborador vê o que o gestor reprovou
+            filtrados = ocorrencias.filter(o => o.status_fluxo === "Reprovado" && o.responsavel_login === sessao.user);
+        }
+
+        if (filtrados.length === 0) {
+            lista.innerHTML = "<p style='text-align:center; color:gray;'>Nenhuma pendência encontrada.</p>";
+            return;
+        }
+
+        lista.innerHTML = filtrados.map(o => `
+            <div class="card">
+                <h3>${o.descricao}</h3>
+                <p><strong>Local:</strong> ${o.setor} | ${o.local}</p>
+                <p><strong>Situação atual:</strong> <span class="${o.status_fluxo === 'Reprovado' ? 'status-repro' : 'status-wait'}">${o.status_fluxo}</span></p>
+                ${o.motivo_reprovacao ? `<p style="color:red"><strong>Motivo Reprovação:</strong> ${o.motivo_reprovacao}</p>` : ''}
+                
+                <div class="actions">
+                    ${sessao.perfil === 'Gestor' || sessao.user === 'admin' ? `
+                        <button class="btn btn-approve" onclick="decidir(${o.id}, 'Concluído')"><i class="fas fa-check"></i> Aprovar</button>
+                        <button class="btn btn-reject" onclick="reprovar(${o.id})"><i class="fas fa-times"></i> Reprovar</button>
+                    ` : `
+                        <button class="btn btn-approve" style="background:#3498db" onclick="window.location.href='dashboard.html'">Corrigir no Painel</button>
+                    `}
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function decidir(id, novoStatus) {
+        let ocorrencias = JSON.parse(localStorage.getItem('ocorrencias'));
+        let idx = ocorrencias.findIndex(o => o.id === id);
+        ocorrencias[idx].status_fluxo = novoStatus;
+        localStorage.setItem('ocorrencias', JSON.stringify(ocorrencias));
+        alert("Ação realizada com sucesso!");
+        carregarPendencias();
+    }
+
+    function reprovar(id) {
+        const motivo = prompt("Informe o motivo da reprovação para o colaborador:");
+        if (!motivo) return alert("É obrigatório informar o motivo!");
+        
+        let ocorrencias = JSON.parse(localStorage.getItem('ocorrencias'));
+        let idx = ocorrencias.findIndex(o => o.id === id);
+        ocorrencias[idx].status_fluxo = "Reprovado";
+        ocorrencias[idx].motivo_reprovacao = motivo;
+        localStorage.setItem('ocorrencias', JSON.stringify(ocorrencias));
+        carregarPendencias();
+    }
+
+    window.onload = carregarPendencias;
+</script>
+</body>
+</html>
