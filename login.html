@@ -4,53 +4,149 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - CheckAi</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #f4f7f6; margin: 0; display: flex; align-items: center; justify-content: center; height: 100vh; }
-        .login-container { background: white; padding: 40px; border-radius: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 320px; text-align: center; }
-        .logo { font-size: 32px; font-weight: bold; color: #2c3e50; margin-bottom: 5px; }
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #2c3e50, #3498db);
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+
+        .login-card {
+            background: white;
+            padding: 40px;
+            border-radius: 30px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+            width: 100%;
+            max-width: 380px;
+            text-align: center;
+        }
+
+        .logo {
+            font-size: 38px;
+            font-weight: 900;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            letter-spacing: -1.5px;
+        }
+
         .logo span { color: #3498db; }
-        input { width: 100%; padding: 15px; margin: 10px 0; border: 1px solid #ddd; border-radius: 12px; box-sizing: border-box; }
-        .btn-login { width: 100%; padding: 15px; background: #2c3e50; color: white; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; margin-top: 10px; }
-        .error { color: #e74c3c; font-size: 12px; margin-top: 10px; display: none; }
+
+        p { color: #7f8c8d; margin-bottom: 30px; }
+
+        .input-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #34495e;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #eee;
+            border-radius: 12px;
+            box-sizing: border-box;
+            font-size: 16px;
+            transition: 0.3s;
+        }
+
+        .input-group input:focus {
+            border-color: #3498db;
+            outline: none;
+        }
+
+        .btn-entrar {
+            width: 100%;
+            padding: 15px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .btn-entrar:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+        }
+
+        .error-msg {
+            color: #e74c3c;
+            font-size: 14px;
+            margin-top: 15px;
+            display: none;
+        }
     </style>
 </head>
 <body>
-    <div class="login-container">
-        <div class="logo">Check<span>Ai</span></div>
-        <p style="color:#7f8c8d; font-size:14px;">Acesso ao Sistema</p>
-        <input type="text" id="user" placeholder="Usuário">
-        <input type="password" id="pass" placeholder="Senha">
-        <div id="msg" class="error">Acesso negado ou dados incorretos!</div>
-        <button class="btn-login" onclick="entrar()">ENTRAR</button>
+
+<div class="login-card">
+    <div class="logo">Check<span>Ai</span></div>
+    <p>Acesse sua conta para continuar</p>
+
+    <div class="input-group">
+        <label>Usuário</label>
+        <input type="text" id="userInput" placeholder="Digite seu usuário">
     </div>
 
-    <script>
-        function init() {
-            localStorage.removeItem('usuario_logado');
-            let u = JSON.parse(localStorage.getItem('usuarios_checkai') || '[]');
-            if(u.length === 0) {
-                u.push({nome: "Desenvolvedor", user: "admin", senha: "123", perfil: "admin", status: "Ativo"});
-                localStorage.setItem('usuarios_checkai', JSON.stringify(u));
-            }
-        }
+    <div class="input-group">
+        <label>Senha</label>
+        <input type="password" id="passInput" placeholder="Digite sua senha">
+    </div>
 
-        function entrar() {
-            const userIn=document.getElementById('user').value, passIn=document.getElementById('pass').value;
-            const users=JSON.parse(localStorage.getItem('usuarios_checkai') || '[]');
-            const logado = users.find(i => i.user === userIn && i.senha === passIn);
+    <button class="btn-entrar" onclick="validarLogin()">ENTRAR</button>
+    
+    <div id="error" class="error-msg">Usuário ou senha incorretos!</div>
+</div>
 
-            if(logado) {
-                if(logado.status === 'Inativo') {
-                    alert("Seu acesso foi desativado pelo administrador.");
-                    return;
-                }
-                localStorage.setItem('usuario_logado', JSON.stringify(logado));
-                window.location.href = 'index.html';
-            } else {
-                document.getElementById('msg').style.display = 'block';
-            }
+<script>
+    function validarLogin() {
+        const user = document.getElementById('userInput').value;
+        const pass = document.getElementById('passInput').value;
+        const error = document.getElementById('error');
+
+        // Simulação de base de dados de usuários
+        // Aqui você pode adicionar mais usuários se desejar
+        if (user === "admin" && pass === "123") {
+            
+            // Criamos o objeto de sessão
+            const usuarioLogado = {
+                nome: "Administrador",
+                user: "admin",
+                dataAcesso: new Date().toLocaleString()
+            };
+
+            // SALVAMOS NO NAVEGADOR (Isso resolve o problema da tela em branco/loop)
+            localStorage.setItem('usuarioLogado', JSON.stringify(usuarioLogado));
+
+            // REDIRECIONAMOS
+            window.location.replace('index.html');
+
+        } else {
+            // Se errar, mostra o erro
+            error.style.display = "block";
+            setTimeout(() => { error.style.display = "none"; }, 3000);
         }
-        window.onload = init;
-    </script>
+    }
+
+    // Permite dar 'Enter' para logar
+    document.addEventListener('keypress', function(e) {
+        if(e.key === 'Enter') validarLogin();
+    });
+</script>
+
 </body>
 </html>
