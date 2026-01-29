@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro de Ocorrência - Check Ai</title>
+    <style>
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f2f5; margin: 0; padding: 20px; display: flex; justify-content: center; }
+        .container { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); width: 100%; max-width: 600px; position: relative; }
+        
+        /* Botão Sair */
+        .btn-logout { 
+            position: absolute; top: 20px; right: 20px; background: #dc3545; color: white; border: none; 
+            padding: 8px 15px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: bold; 
+        }
+        
+        h2 { color: #2b61e4; margin-bottom: 25px; border-bottom: 2px solid #eee; padding-bottom: 10px; margin-top: 10px; }
+        label { display: block; margin-top: 15px; font-weight: bold; color: #333; font-size: 14px; }
+        
+        textarea, input[type="text"], input[type="date"], input[type="file"] { 
+            width: 100%; padding: 12px; margin-top: 8px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 14px; 
+        }
+        textarea { resize: vertical; min-height: 80px; }
+
+        .priority-group { display: flex; gap: 10px; margin-top: 10px; }
+        .btn-p { flex: 1; padding: 12px; border: none; border-radius: 8px; cursor: pointer; color: white; font-weight: bold; opacity: 0.5; transition: 0.3s; }
+        .btn-p.active { opacity: 1; transform: scale(1.02); box-shadow: 0 4px 10px rgba(0,0,0,0.15); }
+        .baixa { background: #28a745; }
+        .media { background: #ffc107; color: #333; }
+        .alta { background: #dc3545; }
+
+        #preview-container { margin-top: 15px; text-align: center; display: none; }
+        #preview-img { max-width: 100%; max-height: 300px; border-radius: 10px; border: 2px solid #2b61e4; }
+
+        .checkbox-group { display: flex; align-items: center; gap: 10px; margin-top: 20px; background: #fff9e6; padding: 12px; border-radius: 8px; }
+        .checkbox-group input { width: auto; margin: 0; }
+
+        .btn-enviar { background: #2b61e4; color: white; border: none; padding: 16px; width: 100%; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 25px; transition: background 0.3s; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <button class="btn-logout" onclick="logout()">SAIR</button>
+    <h2>Registro de Ocorrência</h2>
+    
+    <form id="formOcorrencia">
+        <label>Prioridade:</label>
+        <div class="priority-group">
+            <button type="button" class="btn-p baixa active" onclick="selecionarPrioridade('Baixa', this)">Baixa</button>
+            <button type="button" class="btn-p media" onclick="selecionarPrioridade('Média', this)">Média</button>
+            <button type="button" class="btn-p alta" onclick="selecionarPrioridade('Alta', this)">Alta</button>
+        </div>
+
+        <label>Descrição da Não Conformidade:</label>
+        <textarea id="descricao" required placeholder="Texto livre..."></textarea>
+
+        <label>Sugestão de Melhorias:</label>
+        <textarea id="sugestao" required placeholder="Texto livre..."></textarea>
+
+        <label>Data do Cadastro (Automática):</label>
+        <input type="text" id="dataAtual" readonly style="background-color: #f9f9f9;">
+
+        <label>Sugestão para Conclusão:</label>
+        <input type="date" id="dataSugestao" required>
+
+        <label>Registro Fotográfico:</label>
+        <input type="file" id="fotoInput" accept="image/*" capture="environment" onchange="mostrarPreview(this)">
+        
+        <div id="preview-container">
+            <label style="color: #2b61e4;">Visualização:</label><br>
+            <img id="preview-img" src="" alt="Foto">
+        </div>
+
+        <div class="checkbox-group">
+            <input type="checkbox" id="fotoNaoAplicavel" onchange="toggleFoto()">
+            <label style="margin:0; font-size: 14px;">Evidência fotográfica não aplicável</label>
+        </div>
+
+        <button type="submit" class="btn-enviar">ENVIAR REGISTRO</button>
+    </form>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyBkVb8zenJDjsPSFRCiEmcsOHYhKdquT7M",
+        authDomain: "check-ai-9303f.firebaseapp.com",
+        projectId: "check-ai-9303f",
+        storageBucket: "check-ai-9303f.firebasestorage.app",
+        messagingSenderId: "732538707024",
+        appId: "1:732538707024:web:d467b1246c7dcb16030555"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    let prioridadeSelecionada = "Baixa";
+
+    window.onload = () => { document.getElementById('dataAtual').value = new Date().toLocaleDateString('pt-BR'); };
+    window.logout = () => { localStorage.clear(); window.location.href = "index.html"; };
+    window.selecionarPrioridade = (p, btn) => {
+        prioridadeSelecionada = p;
+        document.querySelectorAll('.btn-p').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+    };
+    window.mostrarPreview = (input) => {
+        const preview = document.getElementById('preview-img');
+        const container = document.getElementById('preview-container');
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = (e) => { preview.src = e.target.result; container.style.display = 'block'; }
+            reader.readAsDataURL(input.files[0]);
+        }
+    };
+    window.toggleFoto = () => {
+        const input = document.getElementById('fotoInput');
+        const preview = document.getElementById('preview-container');
+        const nApli = document.getElementById('fotoNaoAplicavel').checked;
+        if(nApli) { input.value = ""; preview.style.display = 'none'; }
+    };
+
+    document.getElementById('formOcorrencia').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const nomeUsuario = localStorage.getItem("usuarioNome") || "Colaborador";
+        try {
+            await addDoc(collection(db, "ocorrencias"), {
+                registradoPor: nomeUsuario,
+                prioridade: prioridadeSelecionada,
+                descricao: document.getElementById('descricao').value,
+                sugestao: document.getElementById('sugestao').value,
+                dataCadastro: document.getElementById('dataAtual').value,
+                dataSugestao: document.getElementById('dataSugestao').value,
+                status: "Aberto",
+                timestamp: new Date()
+            });
+            alert("Registro enviado");
+            location.reload(); 
+        } catch (error) { alert("Erro: " + error.message); }
+    });
+</script>
+</body>
+</html>

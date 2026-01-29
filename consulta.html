@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalhes da Ocorrência - Check Ai</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; margin: 0; padding: 20px; display: flex; justify-content: center; }
+        .container { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); width: 100%; max-width: 700px; }
+        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; padding-bottom: 15px; margin-bottom: 20px; }
+        h2 { color: #2b61e4; margin: 0; }
+        .status-badge { padding: 8px 15px; border-radius: 20px; font-weight: bold; font-size: 14px; text-transform: uppercase; }
+        
+        /* Estilos de Status */
+        .status-aberto { background: #fff3cd; color: #856404; }
+        .status-concluido { background: #d4edda; color: #155724; }
+        .status-cancelado { background: #f8d7da; color: #721c24; }
+
+        .info-section { margin-bottom: 25px; }
+        .info-label { font-weight: bold; color: #555; font-size: 14px; display: block; margin-bottom: 5px; }
+        .info-value { background: #f8f9fa; padding: 12px; border-radius: 8px; border: 1px solid #eee; display: block; font-size: 15px; color: #333; }
+        
+        .foto-container { text-align: center; margin-top: 20px; }
+        .foto-evidencia { max-width: 100%; border-radius: 10px; border: 3px solid #2b61e4; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        
+        .btn-voltar { background: #6c757d; color: white; border: none; padding: 12px 25px; border-radius: 8px; cursor: pointer; font-weight: bold; text-decoration: none; display: inline-block; margin-top: 20px; }
+        .btn-voltar:hover { background: #5a6268; }
+        
+        .historico-box { background: #e9ecef; padding: 15px; border-radius: 8px; margin-top: 20px; border-left: 5px solid #2b61e4; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h2 id="titulo">Detalhes do Registro</h2>
+        <span id="statusBadge" class="status-badge">Carregando...</span>
+    </div>
+
+    <div id="detalhesConteudo">
+        <div class="info-section">
+            <span class="info-label">Registrado por:</span>
+            <span id="registradoPor" class="info-value">...</span>
+        </div>
+
+        <div style="display: flex; gap: 20px;">
+            <div class="info-section" style="flex: 1;">
+                <span class="info-label">Data do Cadastro:</span>
+                <span id="dataCadastro" class="info-value">...</span>
+            </div>
+            <div class="info-section" style="flex: 1;">
+                <span class="info-label">Prioridade:</span>
+                <span id="prioridade" class="info-value">...</span>
+            </div>
+        </div>
+
+        <div class="info-section">
+            <span class="info-label">Descrição da Não Conformidade:</span>
+            <span id="descricao" class="info-value">...</span>
+        </div>
+
+        <div class="info-section">
+            <span class="info-label">

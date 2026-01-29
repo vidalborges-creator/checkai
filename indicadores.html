@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Operacional - CheckAi</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #f4f7f6; margin: 0; padding: 20px; text-align: center; }
+        .container { max-width: 900px; margin: auto; }
+        h2 { color: #2c3e50; margin-bottom: 30px; }
+        
+        .grid-indicadores { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+        
+        /* Cards clicáveis */
+        .card { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); border-bottom: 6px solid #ddd; cursor: pointer; transition: 0.3s; }
+        .card:hover { transform: scale(1.02); box-shadow: 0 15px 35px rgba(0,0,0,0.1); }
+        .valor { font-size: 48px; font-weight: bold; color: #2c3e50; display: block; }
+        .label { font-size: 14px; color: #7f8c8d; font-weight: bold; text-transform: uppercase; }
+
+        .concluidas { border-color: #2ecc71; }
+        .andamento { border-color: #3498db; }
+        .atrasadas { border-color: #e74c3c; }
+        .canceladas { border-color: #95a5a6; }
+
+        /* Estilo da Listagem Filtrada (Modal) */
+        .modal-filtro { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); align-items: center; justify-content: center; }
+        .modal-content { background: #f4f7f6; padding: 25px; border-radius: 20px; width: 600px; max-width: 95%; max-height: 85vh; overflow-y: auto; text-align: left; }
+        
+        .item-lista { background: white; padding: 15px; border-radius: 12px; margin-bottom: 10px; border-left: 5px solid #3498db; display: flex; justify-content: space-between; align-items: center; }
+        .prio { font-size: 10px; font-weight: bold; padding: 3px 7px; border-radius: 4px; color: white; }
+        
+        .btn-fechar { background: #e74c3c; color: white; border: none; padding: 10px 20px; border-radius: 10px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 15px; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>Dashboard Operacional</h2>
+
+        <div class="grid-indicadores">
+            <div class="card concluidas" onclick="filtrar('Concluído')">
+                <span id="countConcluidas" class="valor">0</span>
+                <span class="label">Concluídas</span>
+            </div>
+            <div class="card andamento" onclick="filtrar('Andamento')">
+                <span id="countAndamento" class="valor">0</span>
+                <span class="label">Em Andamento</span>
+            </div>
+            <div class="card atrasadas" onclick="filtrar('Atrasada')">
+                <span id="countAtrasadas" class="valor">0</span>
+                <span class="label">Atrasadas</span>
+            </div>
+            <div class="card canceladas" onclick="filtrar('Cancelado')">
+                <span id="countCanceladas" class="valor">0</span>
+                <span class="label">Canceladas</span>
+            </div>
+        </div>
+
+        <a href="menu.html" style="margin-top:20px; display:inline-block; color:#3498db; text-decoration:none; font-weight:bold;">← Voltar ao Menu</a>
+    </div>
+
+    <div id="modalFiltro" class="modal-filtro">
+        <div class="modal-content">
+            <h3 id="tituloFiltro" style="margin-top:0; color:#2c3e50;"></h3>
+            <div id="listaFiltrada"></div>
+            <button class="btn-fechar" onclick="document.getElementById('modalFiltro').style.display='none'">Fechar Lista</button>
+        </div>
+    </div>
+
+    <script>
+        const dados = JSON.parse(localStorage.getItem('ocorrencias') || '[]');
+        const hoje = new Date().toISOString().split('T')[0];
+
+        function atualizarDashboard() {
+            let c = 0, a = 0, atr = 0, can = 0;
+
+            dados.forEach(occ => {
+                const status = occ.status || 'Em Aberto';
+                if (status === 'Concluído') c++;
+                else if (status === 'Cancelado') can++;
+                else {
+                    a++;
+                    if (occ.conclusao && occ.conclusao < hoje) atr++;
+                }
+            });
+
+            document.getElementById('countConcluidas').innerText = c;
+            document.getElementById('countAndamento').innerText = a;
+            document.getElementById('countAtrasadas').innerText = atr;
+            document.getElementById('countCanceladas').innerText = can;
+        }
+
+        function filtrar(categoria) {
+            const modal = document.getElementById('modalFiltro');
+            const lista = document.getElementById('listaFiltrada');
+            const titulo = document.getElementById('tituloFiltro');
+            
+            titulo.innerText = "Registros: " + categoria;
+            lista.innerHTML = "";
+            modal.style.display = 'flex';
+
+            const filtrados = dados.filter(occ => {
+                const status = occ.status || 'Em Aberto';
+                if (categoria === 'Concluído') return status === 'Concluído';
+                if (categoria === 'Cancelado') return status === 'Cancelado';
+                if (categoria === 'Atrasada') return (status === 'Em Aberto' || status === 'Em Andamento') && (occ.conclusao && occ.conclusao < hoje);
+                if (categoria === 'Andamento') return (status === 'Em Aberto' || status === 'Em Andamento');
+            });
+
+            if(filtrados.length === 0) {
+                lista.innerHTML = "<p style='text-align:center; color:#999;'>Nenhum registro nesta categoria.</p>";
+                return;
+            }
+
+            filtrados.forEach(occ => {
+                lista.innerHTML += `
+                    <div class="item-lista">
+                        <div>
+                            <span class="prio" style="background:${occ.prioridade === 'Alta' ? '#e74c3c' : (occ.prioridade === 'Média' ? '#f1c40f' : '#2ecc71')}">${occ.prioridade}</span>
+                            <div style="font-weight:bold; color:#2c3e50; margin-top:5px;">${occ.setor} - ${occ.local}</div>
+                            <div style="font-size:11px; color:#7f8c8d;">Previsão: ${occ.conclusao || 'N/A'}</div>
+                        </div>
+                        <button onclick="window.location.href='detalhes.html?id=${occ.id}'" style="border:none; background:#3498db; color:white; padding:5px 10px; border-radius:5px; cursor:pointer; font-size:12px;">Ver</button>
+                    </div>
+                `;
+            });
+        }
+
+        window.onload = atualizarDashboard;
+    </script>
+</body>
+</html>

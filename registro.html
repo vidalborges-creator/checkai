@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Novo Registro - CheckAi</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; padding: 20px; margin: 0; }
+        .card { max-width: 500px; margin: auto; background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        .prio-box { display: flex; gap: 10px; margin: 20px 0; }
+        .prio-btn { flex: 1; padding: 12px; border: 2px solid #eee; border-radius: 10px; cursor: pointer; text-align: center; font-weight: bold; font-size: 12px; transition: 0.3s; color: #7f8c8d; }
+        .prio-btn.active.baixa { background: #2ecc71; color: white; border-color: #2ecc71; }
+        .prio-btn.active.media { background: #f1c40f; color: white; border-color: #f1c40f; }
+        .prio-btn.active.alta { background: #e74c3c; color: white; border-color: #e74c3c; }
+        label { display: block; margin-top: 15px; font-weight: bold; font-size: 13px; color: #34495e; }
+        input, textarea { width: 100%; padding: 12px; margin-top: 5px; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; font-family: inherit; }
+        .photo-area { margin-top: 20px; padding-top: 20px; border-top: 1px dashed #ddd; }
+        #preview { width: 100%; border-radius: 10px; margin-top: 10px; display: none; }
+        .btn-submit { width: 100%; padding: 18px; background: #27ae60; color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 30px; transition: 0.3s; }
+        .btn-submit:hover { background: #219150; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2 style="text-align:center; color:#2c3e50; margin-bottom:5px;">Nova Ocorrência</h2>
+        <p style="text-align:center; color:#7f8c8d; font-size:13px; margin-bottom:25px;">Preencha os detalhes abaixo</p>
+
+        <label>Selecione a Prioridade</label>
+        <div class="prio-box">
+            <div class="prio-btn baixa" onclick="setPrio('Baixa', this)">BAIXA</div>
+            <div class="prio-btn media" onclick="setPrio('Média', this)">MÉDIA</div>
+            <div class="prio-btn alta" onclick="setPrio('Alta', this)">ALTA</div>
+        </div>
+
+        <form id="formOcc">
+            <label>Setor</label>
+            <input type="text" id="setor" required placeholder="Ex: Logística">
+            <label>Local</label>
+            <input type="text" id="local" required placeholder="Ex: Galpão A">
+            <label>Descrição da Não Conformidade</label>
+            <textarea id="desc" rows="3" required placeholder="Descreva o problema..."></textarea>
+            <label>Sugestão de Melhoria</label>
+            <textarea id="melh" rows="3" required placeholder="Como resolver?"></textarea>
+            
+            <label>Data Sugestão de Conclusão</label>
+            <input type="date" id="dataConc" required>
+
+            <div class="photo-area">
+                <div style="display:flex; align-items:center; gap:10px; margin-bottom: 10px;">
+                    <input type="checkbox" id="semFoto" style="width:auto; margin: 0;" onchange="toggleFoto()">
+                    <label style="margin:0">Foto não aplicável</label>
+                </div>
+                
+                <div id="campoFoto">
+                    <label>Inserir Foto (Galeria ou Câmera)</label>
+                    <input type="file" id="fotoIn" accept="image/*" capture="environment">
+                    <img id="preview">
+                </div>
+            </div>
+
+            <button type="submit" class="btn-submit">FINALIZAR E SALVAR</button>
+        </form>
+        <a href="dashboard.html" style="display:block; text-align:center; margin-top:15px; color:#95a5a6; text-decoration:none; font-size:13px;">← Cancelar</a>
+    </div>
+
+    <script>
+        let pSel = "";
+        function setPrio(v, el) {
+            pSel = v;
+            document.querySelectorAll('.prio-btn').forEach(b => b.classList.remove('active'));
+            el.classList.add('active');
+        }
+
+        function toggleFoto() {
+            const check = document.getElementById('semFoto').checked;
+            document.getElementById('campoFoto').style.display = check ? 'none' : 'block';
+        }
+
+        document.getElementById('fotoIn').onchange = function(e) {
+            const file = e.target.files[0];
+            if(file) {
+                const img = document.getElementById('preview');
+                img.src = URL.createObjectURL(file);
+                img.style.display = 'block';
+            }
+        }
+
+        document.getElementById('formOcc').onsubmit = function(e) {
+            e.preventDefault();
+            if(!pSel) return alert("Por favor, selecione uma prioridade!");
+            
+            const fotoInput = document.getElementById('fotoIn');
+            const semFoto = document.getElementById('semFoto').checked;
+
+            if (!semFoto && fotoInput.files[0]) {
+                const reader = new FileReader();
+                reader.onloadend = function() {
+                    salvarDados(reader.result);
+                }
+                reader.readAsDataURL(fotoInput.files[0]);
+            } else {
+                salvarDados("");
+            }
+        };
+
+        function salvarDados(fotoBase64) {
+            const nova = {
+                id: Date.now(),
+                prioridade: pSel,
+                setor: document.getElementById('setor').value,
+                local: document.getElementById('local').value,
+                descricao: document.getElementById('desc').value,
+                melhoria: document.getElementById('melh').value,
+                conclusao: document.getElementById('dataConc').value,
+                data: new Date().toLocaleDateString('pt-BR'),
+                status: 'Em Aberto',
+                foto: fotoBase64
+            };
+
+            let dados = JSON.parse(localStorage.getItem('ocorrencias') || '[]');
+            dados.push(nova);
+            localStorage.setItem('ocorrencias', JSON.stringify(dados));
+            window.location.href = 'dashboard.html';
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel de Gestão - Check Ai</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #e9ecef; margin: 0; padding: 20px; }
+        .dashboard { max-width: 1000px; margin: auto; }
+        .header { display: flex; justify-content: space-between; align-items: center; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        
+        .btn-logout { background: #dc3545; color: white; border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; margin-left: 10px; }
+        
+        .card { background: white; border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); border-left: 10px solid #ddd; }
+        .baixa { border-left-color: #28a745; }
+        .media { border-left-color: #ffc107; }
+        .alta { border-left-color: #dc3545; }
+
+        .grid-info { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; font-size: 13px; background: #f8f9fa; padding: 10px; border-radius: 8px; margin: 10px 0; }
+        .label { font-weight: bold; color: #555; }
+
+        .btn-group { display: flex; gap: 10px; margin-top: 15px; border-top: 1px solid #eee; padding-top: 15px; }
+        .btn { flex: 1; padding: 10px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; color: white; transition: 0.3s; }
+        .btn-encaminhar { background: #17a2b8; }
+        .btn-concluir { background: #28a745; }
+        .btn-cancelar { background: #dc3545; }
+        .btn-excel { background: #218838; padding: 12px 25px; flex: none; }
+
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); }
+        .modal-content { background: white; margin: 5% auto; padding: 25px; width: 90%; max-width: 500px; border-radius: 10px; }
+        textarea, input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; }
+    </style>
+</head>
+<body>
+
+<div class="dashboard">
+    <div class="header">
+        <h2>Gestão de Ocorrências</h2>
+        <div style="display: flex; align-items: center;">
+            <button class="btn btn-excel" onclick="exportarExcel()">📥 Excel</button>
+            <button class="btn-logout" onclick="logout()">SAIR</button>
+        </div>
+    </div>
+    <div id="containerAcoes"></div>
+</div>
+
+<div id="modalGestor" class="modal">
+    <div class="modal-content">
+        <h3 id="tituloModal">Ação</h3>
+        <div id="camposDinamicos"></div>
+        <textarea id="justificativaAcao" placeholder="Motivo ou Instruções (OBRIGATÓRIO)" required></textarea>
+        <button class="btn btn-encaminhar" style="width:100%; margin-top:10px;" onclick="salvarAcaoGestor()">CONFIRMAR</button>
+        <button class="btn" style="width:100%; margin-top:5px; background:#666;" onclick="fecharModal()">FECHAR</button>
+    </div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getFirestore, collection, query, orderBy, onSnapshot, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyBkVb8zenJDjsPSFRCiEmcsOHYhKdquT7M",
+        authDomain: "check-ai-9303f.firebaseapp.com",
+        projectId: "check-ai-9303f",
+        storageBucket: "check-ai-9303f.firebasestorage.app",
+        messagingSenderId: "732538707024",
+        appId: "1:732538707024:web:d467b1246c7dcb16030555"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    let idDocGlobal = null, tipoAcaoGlobal = null, listaParaExcel = [];
+
+    window.logout = () => { localStorage.clear(); window.location.href = "index.html"; };
+    
+    const q = query(collection(db, "ocorrencias"), orderBy("timestamp", "desc"));
+    onSnapshot(q, (snapshot) => {
+        const container = document.getElementById('containerAcoes');
+        container.innerHTML = ""; listaParaExcel = [];
+        snapshot.forEach((d) => {
+            const data = d.data(); const id = d.id;
+            listaParaExcel.push({ "Data": data.dataCadastro, "Autor": data.registradoPor, "Status": data.status });
+            container.innerHTML += `
+                <div class="card ${data.prioridade.toLowerCase()}">
+                    <div class="grid-info">
+                        <div><span class="label">Data:</span> ${data.dataCadastro}</div>
+                        <div><span class="label">Autor:</span> ${data.registradoPor}</div>
+                        <div><span class="label">Status:</span> ${data.status}</div>
+                    </div>
+                    <p><strong>Descrição:</strong> ${data.descricao}</p>
+                    <div class="btn-group">
+                        <button class="btn btn-encaminhar" onclick="abrirModal('${id}', 'Encaminhar')">Encaminhar</button>
+                        <button class="btn btn-concluir" onclick="abrirModal('${id}', 'Concluir')">Concluir</button>
+                        <button class="btn btn-cancelar" onclick="abrirModal('${id}', 'Cancelar')">Cancelar</button>
+                    </div>
+                </div>`;
+        });
+    });
+
+    window.abrirModal = (id, tipo) => {
+        idDocGlobal = id; tipoAcaoGlobal = tipo;
+        document.getElementById('tituloModal').innerText = tipo;
+        document.getElementById('modalGestor').style.display = "block";
+    };
+    window.fecharModal = () => document.getElementById('modalGestor').style.display = "none";
+    window.salvarAcaoGestor = async () => {
+        const just = document.getElementById('justificativaAcao').value;
+        if(!just) return alert("Obrigatório!");
+        try {
+            await updateDoc(doc(db, "ocorrencias", idDocGlobal), {
+                status: tipoAcaoGlobal, justificativaGestor: just, dataGestor: new Date().toLocaleString()
+            });
+            fecharModal();
+        } catch (e) { alert(e.message); }
+    };
+    window.exportarExcel = () => {
+        const ws = XLSX.utils.json_to_sheet(listaParaExcel);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Dados");
+        XLSX.writeFile(wb, "Relatorio.xlsx");
+    };
+</script>
+</body>
+</html>

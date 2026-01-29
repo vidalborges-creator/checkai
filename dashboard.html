@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel de Controle - CheckAi</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #f4f7f6; margin: 0; padding: 20px; }
+        .container { max-width: 900px; margin: auto; background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+        .top-nav { margin-bottom: 15px; }
+        .btn-back { text-decoration: none; color: #7f8c8d; font-weight: bold; font-size: 14px; }
+        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; padding-bottom: 20px; margin-bottom: 20px; }
+        .btn-new { background: #3498db; color: white; padding: 12px 20px; border-radius: 10px; text-decoration: none; font-weight: bold; }
+        
+        /* Lista de Ocorrências */
+        .occ-card { border: 1px solid #edf2f7; padding: 20px; border-radius: 15px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; background: #fff; transition: 0.2s; }
+        .occ-card:hover { border-color: #3498db; }
+        .occ-content { flex: 1; cursor: pointer; }
+        .tag { padding: 4px 8px; border-radius: 5px; font-size: 10px; font-weight: bold; color: white; text-transform: uppercase; }
+        .Alta { background: #e74c3c; } .Média { background: #f1c40f; } .Baixa { background: #2ecc71; }
+        
+        /* Botões Laterais */
+        .action-btns { display: flex; gap: 8px; margin-left: 15px; }
+        .btn-circle { border: none; width: 40px; height: 40px; border-radius: 10px; cursor: pointer; color: white; font-size: 18px; display: flex; align-items: center; justify-content: center; }
+        .enc { background: #9b59b6; } .con { background: #27ae60; } .can { background: #95a5a6; }
+
+        /* Modal */
+        .modal { display: none; position: fixed; z-index: 999; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); align-items: center; justify-content: center; }
+        .modal-box { background: white; padding: 25px; border-radius: 15px; width: 400px; max-width: 90%; }
+        input, textarea { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
+        #imgPrev { width: 100%; border-radius: 8px; margin-top: 10px; display: none; }
+        .modal-btns { display: flex; justify-content: flex-end; gap: 10px; margin-top: 15px; }
+        .btn-save { background: #27ae60; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; }
+        .btn-cancel { background: #eee; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="top-nav"><a href="menu.html" class="btn-back">← Voltar ao Menu Principal</a></div>
+    <div class="header">
+        <h2 style="margin:0; color:#2c3e50;">Controle de Ocorrências</h2>
+        <a href="registro.html" class="btn-new">+ Nova Ocorrência</a>
+    </div>
+    <div id="lista"></div>
+</div>
+
+<div id="m" class="modal">
+    <div class="modal-box">
+        <h3 id="mTitle" style="margin-top:0;"></h3>
+        <div id="mBody"></div>
+        <div class="modal-btns">
+            <button class="btn-cancel" onclick="fechar()">Sair</button>
+            <button class="btn-save" onclick="salvar()">Confirmar</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let selId = null;
+    let selTipo = "";
+
+    function carregar() {
+        const dados = JSON.parse(localStorage.getItem('ocorrencias') || '[]');
+        const listDiv = document.getElementById('lista');
+        listDiv.innerHTML = "";
+
+        // Ordenar: Recentes primeiro
+        dados.sort((a, b) => b.id - a.id).forEach(occ => {
+            listDiv.innerHTML += `
+                <div class="occ-card">
+                    <div class="occ-content" onclick="window.location.href='detalhes.html?id=${occ.id}'">
+                        <span class="tag ${occ.prioridade}">${occ.prioridade}</span>
+                        <div style="font-weight:bold; margin-top:5px; color:#2c3e50;">${occ.setor} - ${occ.local}</div>
+                        <div style="font-size:12px; color:#7f8c8d;">Status: ${occ.status || 'Em Aberto'}</div>
+                    </div>
+                    <div class="action-btns">
+                        <button class="btn-circle enc" title="ENCAMINHAR" onclick="abrir(${occ.id}, 'enc')">📧</button>
+                        <button class="btn-circle con" title="SOLICITAR CONCLUSÃO" onclick="abrir(${occ.id}, 'con')">✅</button>
+                        <button class="btn-circle can" title="SOLICITAR CANCELAMENTO" onclick="abrir(${occ.id}, 'can')">🚫</button>
+                    </div>
+                </div>
+            `;
+        });
+    }
+
+    function abrir(id, tipo) {
+        selId = id; selTipo = tipo;
+        const m = document.getElementById('m');
+        const t = document.getElementById('mTitle');
+        const b = document.getElementById('mBody');
+        m.style.display = 'flex';
+        b.innerHTML = "";
+
+        if(tipo === 'enc') {
+            t.innerText = "Encaminhar Registro";
+            b.innerHTML = `<input type="email" id="f1" placeholder="E-mail" required><textarea id="f2" placeholder="Dados adicionais" rows="3" required></textarea>`;
+        } else if(tipo === 'con') {
+            t.innerText = "Solicitar Conclusão";
+            b.innerHTML = `
+                <div style="font-size:12px; margin-bottom:10px;">
+                    <input type="checkbox" id="noImg" onchange="document.getElementById('divImg').style.display=this.checked?'none':'block'" style="width:auto;"> Foto não aplicável
+                </div>
+                <div id="divImg">
+                    <input type="file" id="fImg" accept="image/*" capture="environment" onchange="preview(this)">
+                    <img id="imgPrev">
+                </div>
+                <textarea id="f2" placeholder="Relatório de conclusão" rows="3" required></textarea>`;
+        } else {
+            t.innerText = "Solicitar Cancelamento";
+            b.innerHTML = `<textarea id="f2" placeholder="Motivo do cancelamento" rows="3" required></textarea>`;
+        }
+    }
+
+    function preview(input) {
+        const p = document.getElementById('imgPrev');
+        if (input.files[0]) {
+            const r = new FileReader();
+            r.onload = e => { p.src = e.target.result; p.style.display = 'block'; };
+            r.readAsDataURL(input.files[0]);
+        }
+    }
+
+    function fechar() { document.getElementById('m').style.display = 'none'; }
+
+    function salvar() {
+        // Validação básica de campos obrigatórios
+        const campos = document.getElementById('mBody').querySelectorAll('[required]');
+        for(let c of campos) { if(!c.value && c.parentElement.style.display !== 'none') return alert("Preencha tudo!"); }
+
+        let dados = JSON.parse(localStorage.getItem('ocorrencias') || '[]');
+        let idx = dados.findIndex(o => o.id == selId);
+        
+        if(selTipo === 'con') dados[idx].status = "Concluído";
+        if(selTipo === 'can') dados[idx].status = "Cancelado";
+        
+        localStorage.setItem('ocorrencias', JSON.stringify(dados));
+        alert("Sucesso!");
+        fechar();
+        carregar();
+    }
+
+    window.onload = carregar;
+</script>
+
+</body>
+</html>

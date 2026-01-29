@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Check AI - Painel do Desenvolvedor</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #f4f7fe; margin: 0; padding: 20px; }
+        .header { background: white; padding: 15px; border-radius: 10px; margin-bottom: 20px; border-left: 5px solid #2563eb; }
+        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); max-width: 500px; }
+        input, select { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
+        button { width: 100%; padding: 15px; background: #2563eb; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .btn-logout { background: #64748b; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Painel de Cadastro</h1>
+        <p>Desenvolvedor: Rodrigo</p>
+    </div>
+
+    <div class="card">
+        <h3>Cadastrar Novo Usuário</h3>
+        <input type="text" id="nome" placeholder="Nome Completo">
+        <input type="text" id="empresa" placeholder="Empresa">
+        <input type="email" id="email" placeholder="E-mail">
+        <input type="password" id="senha" placeholder="Senha (mínimo 6 dígitos)">
+        
+        <label for="tipo">Nível de Acesso:</label>
+        <select id="tipo">
+            <option value="colaborador">Colaborador</option>
+            <option value="gestor">Gestor</option>
+            <option value="admin">Administrador (Você)</option>
+        </select>
+
+        <button onclick="salvarUsuario()">CADASTRAR USUÁRIO</button>
+        <button class="btn-logout" onclick="window.location.href='index.html'">Voltar ao Login</button>
+    </div>
+
+    <script type="module" src="script.js"></script>
+
+    <script>
+        function salvarUsuario() {
+            const nome = document.getElementById('nome').value;
+            const empresa = document.getElementById('empresa').value;
+            const email = document.getElementById('email').value;
+            const senha = document.getElementById('senha').value;
+            const tipo = document.getElementById('tipo').value;
+
+            if(!nome || !email || !senha) {
+                alert("Preencha os campos obrigatórios!");
+                return;
+            }
+
+            // Chama a função que criamos no script.js
+            window.cadastrarUsuario(nome, empresa, email, senha, tipo);
+        }
+    </script>
+</body>
+</html>

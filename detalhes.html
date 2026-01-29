@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalhes da Ocorrência - CheckAi</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #f4f7f6; margin: 0; padding: 20px; }
+        .container { max-width: 700px; margin: auto; background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+        
+        .top-bar { margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+        .back-link { text-decoration: none; color: #3498db; font-weight: bold; cursor: pointer; font-size: 14px; }
+        
+        h2 { color: #2c3e50; margin-top: 0; }
+        .info-group { margin-bottom: 20px; padding: 15px; background: #f9fbfb; border-radius: 12px; }
+        .label { font-size: 12px; color: #7f8c8d; font-weight: bold; text-transform: uppercase; display: block; margin-bottom: 5px; }
+        .value { font-size: 16px; color: #2c3e50; font-weight: 500; }
+        
+        .status-badge { display: inline-block; padding: 5px 15px; border-radius: 20px; color: white; font-weight: bold; font-size: 14px; margin-bottom: 20px; }
+        
+        .img-container { width: 100%; margin-top: 15px; border-radius: 15px; overflow: hidden; border: 1px solid #ddd; }
+        .img-container img { width: 100%; display: block; }
+        
+        .btn-print { background: #2c3e50; color: white; border: none; padding: 12px 20px; border-radius: 10px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 20px; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="top-bar">
+            <a onclick="history.back()" class="back-link">← Voltar para a tela anterior</a>
+        </div>
+
+        <div id="detalheContent">
+            <p style="text-align:center; color:#999;">Carregando detalhes...</p>
+        </div>
+    </div>
+
+    <script>
+        function carregarDetalhes() {
+            const params = new URLSearchParams(window.location.search);
+            const id = params.get('id');
+            const dados = JSON.parse(localStorage.getItem('ocorrencias') || '[]');
+            const occ = dados.find(o => o.id == id);
+
+            if (!occ) {
+                document.getElementById('detalheContent').innerHTML = "<h3>Ocorrência não encontrada.</h3>";
+                return;
+            }
+
+            const statusCor = occ.status === 'Concluído' ? '#2ecc71' : (occ.status === 'Cancelado' ? '#95a5a6' : '#3498db');
+
+            document.getElementById('detalheContent').innerHTML = `
+                <div class="status-badge" style="background: ${statusCor}">${occ.status || 'Em Aberto'}</div>
+                
+                <div class="info-group">
+                    <span class="label">Setor e Local</span>
+                    <span class="value">${occ.setor} - ${occ.local}</span>
+                </div>
+
+                <div class="info-group">
+                    <span class="label">Prioridade</span>
+                    <span class="value">${occ.prioridade}</span>
+                </div>
+
+                <div class="info-group">
+                    <span class="label">Data de Registro / Previsão</span>
+                    <span class="value">${occ.data} | Previsão: ${occ.conclusao || 'Não informada'}</span>
+                </div>
+
+                <div class="info-group">
+                    <span class="label">Descrição da Ocorrência</span>
+                    <span class="value">${occ.descricao || 'Sem descrição.'}</span>
+                </div>
+
+                ${occ.foto ? `
+                    <div class="label">Evidência Fotográfica</div>
+                    <div class="img-container">
+                        <img src="${occ.foto}" alt="Foto da Ocorrência">
+                    </div>
+                ` : ''}
+
+                <button class="btn-print" onclick="window.print()">Imprimir / Gerar PDF</button>
+            `;
+        }
+
+        window.onload = carregarDetalhes;
+    </script>
+</body>
+</html>
