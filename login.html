@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - CheckAi</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #f4f7f6; margin: 0; display: flex; align-items: center; justify-content: center; height: 100vh; }
+        .login-container { background: white; padding: 40px; border-radius: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 320px; text-align: center; }
+        .logo { font-size: 32px; font-weight: bold; color: #2c3e50; margin-bottom: 5px; }
+        .logo span { color: #3498db; }
+        p { color: #7f8c8d; margin-bottom: 30px; font-size: 14px; }
+        
+        input { width: 100%; padding: 15px; margin: 10px 0; border: 1px solid #ddd; border-radius: 12px; box-sizing: border-box; font-size: 14px; }
+        
+        .btn-login { 
+            width: 100%; 
+            padding: 15px; 
+            background: #2c3e50; 
+            color: white; 
+            border: none; 
+            border-radius: 12px; 
+            font-size: 16px; 
+            font-weight: bold; 
+            cursor: pointer; 
+            transition: 0.3s;
+            margin-top: 10px;
+        }
+        .btn-login:hover { background: #34495e; transform: translateY(-2px); }
+        .error-msg { color: #e74c3c; font-size: 12px; margin-top: 10px; display: none; }
+    </style>
+</head>
+<body>
+
+    <div class="login-container">
+        <div class="logo">Check<span>Ai</span></div>
+        <p>Gestão Inteligente de Ocorrências</p>
+
+        <input type="text" id="usuario" placeholder="Usuário">
+        <input type="password" id="senha" placeholder="Senha">
+        
+        <div id="msgErro" class="error-msg">Usuário ou senha incorretos!</div>
+        
+        <button class="btn-login" onclick="autenticar()">ENTRAR NO SISTEMA</button>
+    </div>
+
+    <script>
+        // Função para criar o primeiro ADMIN se o sistema estiver vazio
+        function inicializarAdmin() {
+            let usuarios = JSON.parse(localStorage.getItem('usuarios_checkai') || '[]');
+            if (usuarios.length === 0) {
+                // Cria o usuário mestre: login 'admin' e senha '123'
+                usuarios.push({
+                    nome: "Desenvolvedor",
+                    user: "admin",
+                    senha: "123",
+                    perfil: "admin"
+                });
+                localStorage.setItem('usuarios_checkai', JSON.stringify(usuarios));
+                console.log("Usuário Admin inicial criado: admin / 123");
+            }
+        }
+
+        function autenticar() {
+            const userIn = document.getElementById('usuario').value;
+            const senhaIn = document.getElementById('senha').value;
+            const msgErro = document.getElementById('msgErro');
+
+            // Carrega a lista de usuários cadastrados
+            const usuarios = JSON.parse(localStorage.getItem('usuarios_checkai') || '[]');
+
+            // Procura o usuário na lista
+            const usuarioEncontrado = usuarios.find(u => u.user === userIn && u.senha === senhaIn);
+
+            if (usuarioEncontrado) {
+                // SALVA QUEM LOGOU para o index.html ler
+                localStorage.setItem('usuario_logado', JSON.stringify(usuarioEncontrado));
+                
+                // Redireciona para o Menu Principal
+                window.location.href = 'index.html';
+            } else {
+                msgErro.style.display = 'block';
+                document.getElementById('senha').value = "";
+            }
+        }
+
+        // Executa ao abrir a tela
+        window.onload = inicializarAdmin;
+    </script>
+</body>
+</html>
