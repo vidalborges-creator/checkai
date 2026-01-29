@@ -3,58 +3,102 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Menu Principal - CheckAi</title>
+    <title>CheckAi - Menu</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
-        .menu-card { background: white; padding: 40px; border-radius: 30px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); text-align: center; width: 90%; max-width: 450px; }
-        h1 { color: #2c3e50; margin-bottom: 30px; }
-        
-        .btn-menu { 
-            display: flex; align-items: center; justify-content: center; gap: 15px;
-            width: 100%; padding: 20px; margin: 15px 0; border: none; border-radius: 15px;
-            font-size: 18px; font-weight: bold; cursor: pointer; text-decoration: none; transition: 0.3s;
+        body { 
+            font-family: 'Segoe UI', Roboto, sans-serif; 
+            background: #f8fafc; 
+            margin: 0; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            height: 100vh; 
         }
-        .btn-gestao { background: #ebf5ff; color: #2980b9; border: 1px solid #d6eaff; }
-        .btn-gestao:hover { background: #3498db; color: white; }
-        
-        .btn-indicadores { background: #f0fdf4; color: #27ae60; border: 1px solid #dcfce7; }
-        .btn-indicadores:hover { background: #2ecc71; color: white; }
 
-        .footer-info { margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; font-size: 14px; color: #7f8c8d; }
-        
-        /* Estilo do botão Sair */
-        .btn-sair { 
-            background: #e74c3c; color: white; padding: 4px 10px; border-radius: 5px; 
-            text-decoration: none; font-weight: bold; cursor: pointer; border: none;
+        .menu-card { 
+            background: white; 
+            padding: 50px 40px; 
+            border-radius: 32px; 
+            box-shadow: 0 20px 50px rgba(0,0,0,0.08); 
+            text-align: center; 
+            width: 100%; 
+            max-width: 480px; 
         }
-        .btn-sair:hover { background: #c0392b; }
+
+        .user-greeting { 
+            font-size: 28px; 
+            font-weight: 800; 
+            color: #1e293b; 
+            margin-bottom: 40px; 
+        }
+
+        .btn-container { display: flex; flex-direction: column; gap: 20px; }
+
+        .btn-main { 
+            display: flex; 
+            align-items: center; 
+            padding: 25px; 
+            border-radius: 20px; 
+            text-decoration: none; 
+            font-weight: 700; 
+            font-size: 18px; 
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        /* Cores e Ícones Maiores */
+        .btn-gestao { background: #eff6ff; color: #1d4ed8; }
+        .btn-gestao i { font-size: 30px; margin-right: 20px; }
+        .btn-gestao:hover { background: #1d4ed8; color: white; transform: translateY(-3px); }
+
+        .btn-indicadores { background: #f0fdf4; color: #15803d; }
+        .btn-indicadores i { font-size: 30px; margin-right: 20px; }
+        .btn-indicadores:hover { background: #15803d; color: white; transform: translateY(-3px); }
+
+        .footer { 
+            margin-top: 40px; 
+            padding-top: 25px; 
+            border-top: 1px solid #f1f5f9; 
+            font-size: 14px; 
+            color: #64748b; 
+        }
+
+        .btn-logout { 
+            color: #ef4444; 
+            font-weight: 700; 
+            text-decoration: none; 
+            background: #fef2f2; 
+            padding: 6px 12px; 
+            border-radius: 8px; 
+            border: none;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .btn-logout:hover { background: #ef4444; color: white; }
     </style>
 </head>
 <body>
 
 <div class="menu-card">
-    <h1 id="boasVindas">Olá, Usuário</h1>
+    <div class="user-greeting" id="saudacao">Olá, Carregando...</div>
 
-    <a href="dashboard.html" class="btn-menu btn-gestao">
-        <i class="fas fa-clipboard-list"></i> GESTÃO DE OCORRÊNCIAS
-    </a>
+    <div class="btn-container">
+        <a href="dashboard.html" class="btn-main btn-gestao">
+            <i class="fas fa-clipboard-check"></i> GESTÃO DE OCORRÊNCIAS
+        </a>
 
-    <a href="indicadores.html" class="btn-menu btn-indicadores">
-        <i class="fas fa-chart-pie"></i> PAINEL DE INDICADORES
-    </a>
+        <a href="indicadores.html" class="btn-main btn-indicadores">
+            <i class="fas fa-chart-line"></i> PAINEL DE INDICADORES
+        </a>
+    </div>
 
-    <div class="footer-info">
-        Logado como: <span id="nomeUsuario" style="font-weight: bold;">---</span> | 
-        <button class="btn-sair" onclick="fazerLogout()">Sair</button>
+    <div class="footer">
+        Logado como: <span id="userLabel" style="color:#1e293b; font-weight: 600;">---</span> | 
+        <button class="btn-logout" onclick="logout()">Sair</button>
     </div>
 </div>
 
 <script>
-    // 1. Carrega os dados do usuário ao abrir a página
-    window.onload = function() {
-        const usuarioLogado = JSON.parse(localStorage.getItem('usuarioLogado'));
-        
-        if (!usuarioLogado) {
-            // Se não houver ninguém logado, volta para o login
-            window.location.href = 'login.html';
+    document.addEventListener('DOMContentLoaded', function() {
+        // Tenta buscar o usuário que logou na tela de
