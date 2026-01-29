@@ -7,104 +7,152 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         body { font-family: 'Segoe UI', sans-serif; background: #f4f7f6; margin: 0; padding: 20px; }
-        .container { max-width: 900px; margin: auto; }
+        .container { max-width: 1000px; margin: auto; }
         .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .back-link { text-decoration: none; color: #3498db; font-weight: bold; font-size: 14px; }
         
-        .btn-novo { 
-            background: #2ecc71; color: white; text-decoration: none; padding: 15px 25px; 
-            border-radius: 12px; font-weight: bold; display: inline-flex; align-items: center; gap: 10px;
-            box-shadow: 0 4px 15px rgba(46,204,113,0.3); transition: 0.3s; margin-bottom: 30px;
-        }
-        .btn-novo:hover { transform: translateY(-2px); background: #27ae60; }
-
+        /* Estilo dos Cards */
         .card { 
             background: white; border-radius: 18px; padding: 20px; margin-bottom: 15px; 
-            box-shadow: 0 5px 15px rgba(0,0,0,0.05); display: flex; justify-content: space-between; 
-            align-items: center; border-left: 8px solid #ddd; 
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05); border-left: 8px solid #ddd;
         }
-        
-        .info h3 { margin: 0; color: #2c3e50; font-size: 18px; text-transform: uppercase; }
-        .info p { margin: 5px 0 0; color: #7f8c8d; font-size: 14px; }
-        
-        .prio-badge { 
-            font-size: 10px; font-weight: bold; padding: 4px 10px; border-radius: 6px; 
-            color: white; text-transform: uppercase; display: inline-block; margin-bottom: 8px;
-        }
+        .card-content { display: flex; justify-content: space-between; align-items: center; }
+        .info h3 { margin: 0; color: #2c3e50; text-transform: uppercase; }
+        .status-badge { font-size: 11px; padding: 4px 8px; border-radius: 5px; color: white; font-weight: bold; }
 
-        .btn-view { 
-            width: 45px; height: 45px; border-radius: 50%; background: #2c3e50; 
-            color: white; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center;
-            transition: 0.3s;
+        /* Botões de Ação */
+        .actions-bar { display: flex; gap: 8px; margin-top: 15px; border-top: 1px solid #eee; padding-top: 15px; }
+        .btn-action { 
+            border: none; padding: 8px 12px; border-radius: 8px; cursor: pointer; 
+            font-size: 12px; font-weight: bold; display: flex; align-items: center; gap: 5px; color: white;
         }
-        .btn-view:hover { background: #34495e; transform: scale(1.1); }
+        .btn-encaminhar { background: #3498db; }
+        .btn-concluir { background: #2ecc71; }
+        .btn-cancelar { background: #e67e22; }
 
-        .empty-state { text-align: center; padding: 50px; color: #95a5a6; }
+        /* Modais (Telas que abrem) */
+        .modal { 
+            display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; 
+            background: rgba(0,0,0,0.5); align-items: center; justify-content: center; 
+        }
+        .modal-content { background: white; padding: 30px; border-radius: 20px; width: 400px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        .modal-content h3 { margin-top: 0; }
+        input, textarea { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
+        .btn-confirm { width: 100%; padding: 12px; border: none; border-radius: 10px; color: white; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <a href="index.html" class="back-link"><i class="fas fa-arrow-left"></i> Voltar ao Menu</a>
-            <h2 style="margin:0; color: #2c3e50;">Painel de Controle</h2>
-        </div>
 
-        <a href="registro.html" class="btn-novo">
-            <i class="fas fa-plus"></i> NOVO REGISTRO
-        </a>
-
-        <div id="listaOcorrencias">
-            </div>
+<div class="container">
+    <div class="header">
+        <a href="index.html" style="text-decoration:none; color:#3498db; font-weight:bold;">← Voltar</a>
+        <h2>Painel de Controle</h2>
     </div>
 
-    <script>
-        function carregarOcorrencias() {
-            const container = document.getElementById('listaOcorrencias');
-            
-            // 1. Tenta buscar os dados (garantindo que a chave seja 'ocorrencias')
-            let ocorrencias = JSON.parse(localStorage.getItem('ocorrencias') || '[]');
+    <div id="listaOcorrencias"></div>
+</div>
 
-            // 2. Validação: Se não for um array, limpa para evitar erro
-            if (!Array.isArray(ocorrencias)) {
-                console.error("Dados corrompidos encontrados. Resetando lista.");
-                ocorrencias = [];
-            }
+<div id="modalEncaminhar" class="modal">
+    <div class="modal-content">
+        <h3>Encaminhar Ocorrência</h3>
+        <input type="email" id="emailEnc" placeholder="E-mail do destinatário" required>
+        <textarea id="obsEnc" placeholder="Informações gerais" rows="3" required></textarea>
+        <button class="btn-confirm" style="background:#3498db" onclick="salvarAcao('Encaminhado para Aprovação')">Enviar Solicitação</button>
+        <button onclick="fecharModais()" style="background:none; border:none; color:gray; cursor:pointer; margin-top:10px; width:100%;">Cancelar</button>
+    </div>
+</div>
 
-            if (ocorrencias.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <i class="fas fa-clipboard" style="font-size: 40px; margin-bottom: 10px;"></i>
-                        <p>Nenhum registro encontrado no sistema.</p>
-                    </div>`;
-                return;
-            }
+<div id="modalConcluir" class="modal">
+    <div class="modal-content">
+        <h3>Solicitar Conclusão</h3>
+        <div id="campoFoto">
+            <input type="file" id="fotoConc" accept="image/*" onchange="previewFoto(event)">
+            <img id="imgPreview" style="width:100%; border-radius:10px; margin:10px 0; display:none;">
+        </div>
+        <label style="font-size: 12px; color: #666;">
+            <input type="checkbox" id="ignorarFoto" onchange="toggleFoto()"> Inativar obrigação de foto
+        </label>
+        <textarea id="obsConc" placeholder="O que foi realizado?" rows="3" required></textarea>
+        <button class="btn-confirm" style="background:#2ecc71" onclick="salvarAcao('Aguardando Validação de Conclusão')">Solicitar Conclusão</button>
+        <button onclick="fecharModais()" style="background:none; border:none; color:gray; cursor:pointer; margin-top:10px; width:100%;">Cancelar</button>
+    </div>
+</div>
 
-            // 3. ORDENAÇÃO: Do mais recente (ID maior) para o mais antigo (ID menor)
-            ocorrencias.sort((a, b) => b.id - a.id);
+<div id="modalCancelar" class="modal">
+    <div class="modal-content">
+        <h3>Solicitar Cancelamento</h3>
+        <textarea id="obsCanc" placeholder="Motivo do cancelamento" rows="3" required></textarea>
+        <button class="btn-confirm" style="background:#e67e22" onclick="salvarAcao('Aguardando Validação de Cancelamento')">Solicitar Cancelamento</button>
+        <button onclick="fecharModais()" style="background:none; border:none; color:gray; cursor:pointer; margin-top:10px; width:100%;">Cancelar</button>
+    </div>
+</div>
 
-            // 4. Renderização
-            container.innerHTML = ocorrencias.map(occ => {
-                const cor = occ.prioridade === 'Alta' ? '#e74c3c' : (occ.prioridade === 'Média' ? '#f1c40f' : '#2ecc71');
-                
-                return `
-                    <div class="card" style="border-left-color: ${cor}">
+<script>
+    let idSendoEditado = null;
+
+    function carregar() {
+        const container = document.getElementById('listaOcorrencias');
+        let dados = JSON.parse(localStorage.getItem('ocorrencias') || '[]');
+        dados.sort((a, b) => b.id - a.id);
+
+        container.innerHTML = dados.map(occ => {
+            const cor = occ.prioridade === 'Alta' ? '#e74c3c' : (occ.prioridade === 'Média' ? '#f1c40f' : '#2ecc71');
+            return `
+                <div class="card" style="border-left-color: ${cor}">
+                    <div class="card-content">
                         <div class="info">
-                            <span class="prio-badge" style="background:${cor}">${occ.prioridade || 'Normal'}</span>
-                            <h3>${occ.setor || 'NÃO INFORMADO'}</h3>
-                            <p><strong>Local:</strong> ${occ.local || 'Geral'}</p>
-                            <p><strong>Status:</strong> ${occ.status_temp || occ.status || 'Em Aberto'}</p>
-                            <p><strong>Data/Hora:</strong> ${occ.data_registro || 'Recente'}</p>
+                            <h3>${occ.setor} - ${occ.local}</h3>
+                            <p>Status: <span class="status-badge" style="background:#95a5a6">${occ.status_fluxo || 'Pendente'}</span></p>
                         </div>
-                        <button class="btn-view" onclick="window.location.href='detalhes.html?id=${occ.id}'">
-                            <i class="fas fa-chevron-right"></i>
-                        </button>
                     </div>
-                `;
-            }).join('');
-        }
+                    <div class="actions-bar">
+                        <button class="btn-action btn-encaminhar" onclick="abrirModal('Encaminhar', ${occ.id})"><i class="fas fa-paper-plane"></i> Encaminhar</button>
+                        <button class="btn-action btn-concluir" onclick="abrirModal('Concluir', ${occ.id})"><i class="fas fa-check"></i> Concluir</button>
+                        <button class="btn-action btn-cancelar" onclick="abrirModal('Cancelar', ${occ.id})"><i class="fas fa-times"></i> Cancelar</button>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
 
-        // Executa ao carregar a página
-        window.onload = carregarOcorrencias;
-    </script>
+    function abrirModal(tipo, id) {
+        idSendoEditado = id;
+        fecharModais();
+        document.getElementById('modal' + tipo).style.display = 'flex';
+    }
+
+    function fecharModais() {
+        document.querySelectorAll('.modal').forEach(m => m.style.display = 'none');
+    }
+
+    function previewFoto(event) {
+        const reader = new FileReader();
+        reader.onload = () => {
+            const img = document.getElementById('imgPreview');
+            img.src = reader.result;
+            img.style.display = 'block';
+        };
+        reader.readAsDataURL(event.target.files[0]);
+    }
+
+    function toggleFoto() {
+        const campo = document.getElementById('campoFoto');
+        campo.style.display = document.getElementById('ignorarFoto').checked ? 'none' : 'block';
+    }
+
+    function salvarAcao(novoStatus) {
+        let dados = JSON.parse(localStorage.getItem('ocorrencias') || '[]');
+        let idx = dados.findIndex(o => o.id === idSendoEditado);
+        
+        // Validação básica de campos obrigatórios
+        if(novoStatus.includes('Cancelamento') && !document.getElementById('obsCanc').value) return alert("Preencha o motivo!");
+
+        dados[idx].status_fluxo = novoStatus;
+        localStorage.setItem('ocorrencias', JSON.stringify(dados));
+        alert("Solicitação enviada ao Gestor!");
+        location.reload();
+    }
+
+    window.onload = carregar;
+</script>
 </body>
 </html>
