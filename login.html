@@ -6,96 +6,22 @@
     <title>Login - CheckAi</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        body {
-            font-family: 'Segoe UI', sans-serif;
-            background: linear-gradient(135deg, #2c3e50, #3498db);
-            margin: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-        }
-
-        .login-card {
-            background: white;
-            padding: 40px;
-            border-radius: 30px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
-            width: 100%;
-            max-width: 380px;
-            text-align: center;
-        }
-
-        .logo {
-            font-size: 38px;
-            font-weight: 900;
-            color: #2c3e50;
-            margin-bottom: 10px;
-            letter-spacing: -1.5px;
-        }
-
+        body { font-family: 'Segoe UI', sans-serif; background: linear-gradient(135deg, #2c3e50, #3498db); margin: 0; display: flex; align-items: center; justify-content: center; height: 100vh; }
+        .login-card { background: white; padding: 40px; border-radius: 30px; box-shadow: 0 15px 35px rgba(0,0,0,0.2); width: 100%; max-width: 380px; text-align: center; }
+        .logo { font-size: 38px; font-weight: 900; color: #2c3e50; margin-bottom: 10px; letter-spacing: -1.5px; }
         .logo span { color: #3498db; }
-
-        p { color: #7f8c8d; margin-bottom: 30px; }
-
-        .input-group {
-            margin-bottom: 20px;
-            text-align: left;
-        }
-
-        .input-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: #34495e;
-        }
-
-        .input-group input {
-            width: 100%;
-            padding: 12px 15px;
-            border: 2px solid #eee;
-            border-radius: 12px;
-            box-sizing: border-box;
-            font-size: 16px;
-            transition: 0.3s;
-        }
-
-        .input-group input:focus {
-            border-color: #3498db;
-            outline: none;
-        }
-
-        .btn-entrar {
-            width: 100%;
-            padding: 15px;
-            background: #3498db;
-            color: white;
-            border: none;
-            border-radius: 12px;
-            font-size: 18px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: 0.3s;
-        }
-
-        .btn-entrar:hover {
-            background: #2980b9;
-            transform: translateY(-2px);
-        }
-
-        .error-msg {
-            color: #e74c3c;
-            font-size: 14px;
-            margin-top: 15px;
-            display: none;
-        }
+        .input-group { margin-bottom: 20px; text-align: left; }
+        .input-group label { display: block; margin-bottom: 8px; font-weight: 600; color: #34495e; }
+        .input-group input { width: 100%; padding: 12px 15px; border: 2px solid #eee; border-radius: 12px; box-sizing: border-box; font-size: 16px; }
+        .btn-entrar { width: 100%; padding: 15px; background: #3498db; color: white; border: none; border-radius: 12px; font-size: 18px; font-weight: bold; cursor: pointer; }
+        .error-msg { color: #e74c3c; font-size: 14px; margin-top: 15px; display: none; }
     </style>
 </head>
 <body>
 
 <div class="login-card">
     <div class="logo">Check<span>Ai</span></div>
-    <p>Acesse sua conta para continuar</p>
+    <p style="color: #7f8c8d;">Acesse sua conta para continuar</p>
 
     <div class="input-group">
         <label>Usuário</label>
@@ -108,45 +34,50 @@
     </div>
 
     <button class="btn-entrar" onclick="validarLogin()">ENTRAR</button>
-    
     <div id="error" class="error-msg">Usuário ou senha incorretos!</div>
 </div>
 
 <script>
     function validarLogin() {
-        const user = document.getElementById('userInput').value;
-        const pass = document.getElementById('passInput').value;
-        const error = document.getElementById('error');
+        const userValue = document.getElementById('userInput').value;
+        const passValue = document.getElementById('passInput').value;
+        const errorElement = document.getElementById('error');
 
-        // Simulação de base de dados de usuários
-        // Aqui você pode adicionar mais usuários se desejar
-        if (user === "admin" && pass === "123") {
-            
-            // Criamos o objeto de sessão
-            const usuarioLogado = {
-                nome: "Administrador",
-                user: "admin",
-                dataAcesso: new Date().toLocaleString()
-            };
-
-            // SALVAMOS NO NAVEGADOR (Isso resolve o problema da tela em branco/loop)
-            localStorage.setItem('usuarioLogado', JSON.stringify(usuarioLogado));
-
-            // REDIRECIONAMOS
+        // 1. Primeiro verificamos o Admin mestre (acesso total)
+        if (userValue === "admin" && passValue === "123") {
+            const adminSession = { nome: "Administrador", user: "admin", perfil: "Gestor" };
+            localStorage.setItem('usuarioLogado', JSON.stringify(adminSession));
             window.location.replace('index.html');
+            return;
+        }
 
+        // 2. Se não for admin, buscamos na lista de usuários cadastrados
+        const usuariosCadastrados = JSON.parse(localStorage.getItem('db_usuarios') || '[]');
+        
+        // Procuramos um usuário que coincida o login, a senha e esteja ATIVO
+        const usuarioEncontrado = usuariosCadastrados.find(u => 
+            u.login === userValue && 
+            u.senha === passValue && 
+            u.ativo !== false
+        );
+
+        if (usuarioEncontrado) {
+            // Salva a sessão com os dados do usuário do banco
+            localStorage.setItem('usuarioLogado', JSON.stringify({
+                nome: usuarioEncontrado.nome,
+                user: usuarioEncontrado.login,
+                perfil: usuarioEncontrado.perfil
+            }));
+            window.location.replace('index.html');
         } else {
-            // Se errar, mostra o erro
-            error.style.display = "block";
-            setTimeout(() => { error.style.display = "none"; }, 3000);
+            // Se não encontrar ou estiver inativo, mostra erro
+            errorElement.style.display = "block";
+            setTimeout(() => { errorElement.style.display = "none"; }, 3000);
         }
     }
 
-    // Permite dar 'Enter' para logar
-    document.addEventListener('keypress', function(e) {
-        if(e.key === 'Enter') validarLogin();
-    });
+    // Atalho tecla Enter
+    document.addEventListener('keypress', (e) => { if(e.key === 'Enter') validarLogin(); });
 </script>
-
 </body>
 </html>
