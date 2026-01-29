@@ -3,75 +3,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CheckAi - Login</title>
+    <title>Menu Principal - CheckAi</title>
     <style>
-        body {
-            font-family: 'Segoe UI', sans-serif;
-            background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
+        body { font-family: 'Segoe UI', sans-serif; background: #f4f7f6; margin: 0; display: flex; align-items: center; justify-content: center; height: 100vh; }
+        .menu-container { background: white; padding: 40px; border-radius: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 350px; text-align: center; }
+        .logo { font-size: 28px; font-weight: bold; color: #2c3e50; margin-bottom: 10px; }
+        .logo span { color: #3498db; }
+        p { color: #7f8c8d; margin-bottom: 30px; }
+        
+        .btn-menu { 
+            width: 100%; 
+            padding: 15px; 
+            margin: 10px 0; 
+            border: none; 
+            border-radius: 12px; 
+            font-size: 16px; 
+            font-weight: bold; 
+            cursor: pointer; 
+            transition: 0.3s; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            gap: 10px; 
+            text-decoration: none;
         }
-        .login-card {
-            background: white;
-            padding: 40px;
-            border-radius: 20px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.4);
-            text-align: center;
-            width: 350px;
-        }
-        .logo {
-            max-width: 150px;
-            margin-bottom: 25px;
-        }
-        h2 { color: #2c3e50; margin-bottom: 25px; font-size: 22px; }
-        .input-group { text-align: left; margin-bottom: 15px; }
-        label { display: block; font-size: 12px; color: #7f8c8d; margin-bottom: 5px; font-weight: bold; }
-        input {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            box-sizing: border-box;
-            font-size: 14px;
-        }
-        .btn-login {
-            width: 100%;
-            padding: 15px;
-            background: #3498db;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            margin-top: 10px;
-            transition: 0.3s;
-        }
-        .btn-login:hover { background: #2980b9; }
-        .footer-login { margin-top: 20px; font-size: 10px; color: #bdc3c7; text-transform: uppercase; }
+        
+        .btn-gestao { background: #3498db; color: white; }
+        .btn-indicadores { background: #2ecc71; color: white; }
+        .btn-admin { background: #2c3e50; color: white; display: none; } /* Escondido por padrão */
+        
+        .btn-menu:hover { transform: translateY(-3px); opacity: 0.9; }
+        
+        .footer-user { margin-top: 20px; font-size: 12px; color: #bdc3c7; border-top: 1px solid #eee; padding-top: 15px; }
+        .btn-logout { color: #e74c3c; cursor: pointer; text-decoration: underline; margin-left: 5px; }
     </style>
 </head>
 <body>
-    <div class="login-card">
-        <img src="logo.png" alt="CheckAi Logo" class="logo">
-        <h2>Acesso ao Sistema</h2>
-        
-        <form onsubmit="event.preventDefault(); window.location.href='menu.html';">
-            <div class="input-group">
-                <label>E-MAIL OU USUÁRIO</label>
-                <input type="text" placeholder="Digite seu acesso" required>
-            </div>
-            <div class="input-group">
-                <label>SENHA</label>
-                <input type="password" placeholder="••••••••" required>
-            </div>
-            <button type="submit" class="btn-login">ENTRAR</button>
-        </form>
-        
-        <div class="footer-login">CheckAi Safety Solutions</div>
-    </div>
-</body>
-</html>
+
+    <div class="menu-container">
+        <div class="logo">Check<span>Ai</span></div>
+        <p id="boasVindas">Bem-vindo ao Sistema</p>
+
+        <a href="dashboard.html" class="btn-menu btn-gestao">📋 GESTÃO DE OCORRÊNCIAS</a>
+        <a href="indicadores.html" class="btn-menu btn-indicadores">📊 PAINEL DE INDICADORES</a>
+
+        <a href="usuarios.html" id="areaAdmin" class="btn-menu btn-admin">⚙️ GERENCIAR
