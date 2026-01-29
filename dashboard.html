@@ -9,21 +9,34 @@
         body { font-family: 'Segoe UI', sans-serif; background: #f4f7f6; margin: 0; padding: 20px; }
         .container { max-width: 900px; margin: auto; }
         .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
+        
         .btn-novo { 
             background: #2ecc71; color: white; text-decoration: none; padding: 15px 25px; 
             border-radius: 12px; font-weight: bold; display: inline-flex; align-items: center; gap: 10px;
-            box-shadow: 0 4px 15px rgba(46,204,113,0.3); transition: 0.3s; margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(46,204,113,0.3); transition: 0.3s; margin-bottom: 20px; border: none; cursor: pointer;
         }
+
         .card { 
-            background: white; border-radius: 20px; padding: 20px; margin-bottom: 15px; 
-            box-shadow: 0 8px 20px rgba(0,0,0,0.05); border-left: 10px solid #ddd;
+            background: white; border-radius: 20px; padding: 25px; margin-bottom: 15px; 
+            box-shadow: 0 8px 20px rgba(0,0,0,0.05); border-left: 10px solid #f1c40f;
         }
-        .actions-bar { display: flex; gap: 10px; border-top: 1px solid #eee; padding-top: 15px; margin-top: 10px; }
-        .btn-action { border: none; padding: 8px 12px; border-radius: 8px; cursor: pointer; color: white; font-weight: bold; font-size: 12px; }
-        .modal { display: none; position: fixed; z-index: 999; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); align-items: center; justify-content: center; }
-        .modal-box { background: white; padding: 25px; border-radius: 20px; width: 90%; max-width: 400px; }
-        input, textarea { width: 100%; padding: 10px; margin: 8px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
-        .status-badge { background: #34495e; color: white; padding: 3px 8px; border-radius: 4px; font-size: 11px; }
+
+        .status-badge { background: #95a5a6; color: white; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: bold; }
+
+        .actions-bar { display: flex; gap: 10px; border-top: 1px solid #eee; padding-top: 15px; margin-top: 15px; }
+        .btn-action { 
+            border: none; padding: 10px 15px; border-radius: 8px; cursor: pointer; 
+            font-size: 13px; font-weight: bold; display: flex; align-items: center; gap: 6px; color: white;
+        }
+
+        /* Estilo idêntico à imagem image_e222df */
+        .btn-enc { background: #3498db; }
+        .btn-con { background: #2ecc71; }
+        .btn-can { background: #e67e22; }
+
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); align-items: center; justify-content: center; }
+        .modal-box { background: white; padding: 30px; border-radius: 20px; width: 90%; max-width: 400px; }
+        input, textarea { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; }
     </style>
 </head>
 <body>
@@ -39,60 +52,103 @@
     </a>
 
     <div id="listaOcorrencias">
-        <p style="text-align:center; color:#999; padding:20px;">Carregando registros...</p>
-    </div>
+        </div>
 </div>
 
-<div id="modalAcao" class="modal">
+<div id="modalApp" class="modal">
     <div class="modal-box">
-        <h3 id="modalTitulo">Ação</h3>
-        <div id="formDinamico"></div>
-        <button onclick="confirmarAcao()" id="btnConfirmar" style="width:100%; padding:15px; border-radius:10px; border:none; color:white; font-weight:bold; cursor:pointer; margin-top:10px;"></button>
-        <button onclick="fecharModal()" style="width:100%; background:none; border:none; color:gray; cursor:pointer; margin-top:10px;">Cancelar</button>
+        <h3 id="mTitulo">Ação</h3>
+        <div id="mCampos"></div>
+        <button onclick="salvarAcao()" id="mBotao" style="width:100%; padding:15px; border-radius:12px; border:none; color:white; font-weight:bold; cursor:pointer; margin-top:10px;"></button>
+        <button onclick="fecharModal()" style="width:100%; background:none; border:none; color:gray; cursor:pointer; margin-top:10px; width:100%;">Cancelar</button>
     </div>
 </div>
 
 <script>
-    let idAtivo = null;
-    let tipoAcaoAtiva = "";
+    let itemAtualId = null;
+    let tipoAtual = "";
 
-    function carregar() {
+    function renderizar() {
         const container = document.getElementById('listaOcorrencias');
-        // Busca os dados. Tente 'ocorrencias' ou 'registros' se não aparecer
-        let dados = JSON.parse(localStorage.getItem('ocorrencias') || '[]');
+        // Importante: garante que 'ocorrencias' exista como array
+        const dados = JSON.parse(localStorage.getItem('ocorrencias') || '[]');
 
         if (dados.length === 0) {
-            container.innerHTML = `<div style="text-align:center; background:white; padding:40px; border-radius:20px; color:#999;">
-                <i class="fas fa-search" style="font-size:30px;"></i><p>Nenhum registro encontrado.</p></div>`;
+            container.innerHTML = `<div style="text-align:center; padding:50px; color:#999; background:white; border-radius:20px;">Nenhum registro encontrado. Clique em "Novo Registro" para começar.</div>`;
             return;
         }
 
-        // Ordenar: Recente primeiro
-        dados.sort((a, b) => (b.id || 0) - (a.id || 0));
+        // Ordenação: Mais recente primeiro
+        dados.sort((a, b) => b.id - a.id);
 
-        container.innerHTML = dados.map(occ => {
-            const cor = occ.prioridade === 'Alta' ? '#e74c3c' : (occ.prioridade === 'Média' ? '#f1c40f' : '#2ecc71');
-            return `
-                <div class="card" style="border-left-color: ${cor}">
-                    <div style="display:flex; justify-content:space-between;">
-                        <div>
-                            <h3 style="margin:0; font-size:18px;">${occ.setor || 'Sem Setor'}</h3>
-                            <p style="margin:5px 0; font-size:14px; color:#666;">${occ.local || 'Sem Local'}</p>
-                            <span class="status-badge">${occ.status_fluxo || 'Aguardando'}</span>
-                        </div>
-                    </div>
-                    <div class="actions-bar">
-                        <button class="btn-action" style="background:#3498db" onclick="abrirModal('Encaminhar', ${occ.id})">Encaminhar</button>
-                        <button class="btn-action" style="background:#2ecc71" onclick="abrirModal('Concluir', ${occ.id})">Concluir</button>
-                        <button class="btn-action" style="background:#e67e22" onclick="abrirModal('Cancelar', ${occ.id})">Cancelar</button>
-                    </div>
+        container.innerHTML = dados.map(occ => `
+            <div class="card">
+                <h3 style="margin:0;">${occ.setor || '1'} - ${occ.local || '1'}</h3>
+                <p style="margin:10px 0;">Status: <span class="status-badge">${occ.status_fluxo || 'Pendente'}</span></p>
+                <div class="actions-bar">
+                    <button class="btn-action btn-enc" onclick="abrir('Encaminhar', ${occ.id})"><i class="fas fa-paper-plane"></i> Encaminhar</button>
+                    <button class="btn-action btn-con" onclick="abrir('Concluir', ${occ.id})"><i class="fas fa-check"></i> Concluir</button>
+                    <button class="btn-action btn-can" onclick="abrir('Cancelar', ${occ.id})"><i class="fas fa-times"></i> Cancelar</button>
                 </div>
-            `;
-        }).join('');
+            </div>
+        `).join('');
     }
 
-    function abrirModal(tipo, id) {
-        idAtivo = id;
-        tipoAcaoAtiva = tipo;
-        const modal = document.getElementById('modalAcao');
-        const titulo = document.getElementById
+    function abrir(tipo, id) {
+        itemAtualId = id;
+        tipoAtual = tipo;
+        const m = document.getElementById('modalApp');
+        const t = document.getElementById('mTitulo');
+        const c = document.getElementById('mCampos');
+        const b = document.getElementById('mBotao');
+
+        m.style.display = "flex";
+        c.innerHTML = "";
+
+        if(tipo === 'Encaminhar') {
+            t.innerText = "Encaminhar Registro";
+            c.innerHTML = '<input type="email" id="f1" placeholder="E-mail destinatário" required><textarea id="f2" placeholder="Informações gerais" required></textarea>';
+            b.innerText = "ENCAMINHAR AGORA";
+            b.style.background = "#3498db";
+        } else if(tipo === 'Concluir') {
+            t.innerText = "Solicitar Conclusão";
+            c.innerHTML = '<div id="f-foto"><input type="file" accept="image/*" onchange="window.preview(event)"><img id="p-img" style="width:100%; display:none; margin:10px 0; border-radius:10px;"></div><label style="font-size:12px;"><input type="checkbox" onchange="window.tog(this)"> Inativar obrigação de foto</label><textarea id="f2" placeholder="O que foi realizado?" required></textarea>';
+            b.innerText = "SOLICITAR CONCLUSÃO";
+            b.style.background = "#2ecc71";
+        } else {
+            t.innerText = "Solicitar Cancelamento";
+            c.innerHTML = '<textarea id="f2" placeholder="Motivo do cancelamento" required></textarea>';
+            b.innerText = "SOLICITAR CANCELAMENTO";
+            b.style.background = "#e67e22";
+        }
+    }
+
+    window.preview = (e) => {
+        const reader = new FileReader();
+        reader.onload = () => { const i = document.getElementById('p-img'); i.src = reader.result; i.style.display = "block"; };
+        reader.readAsDataURL(e.target.files[0]);
+    };
+
+    window.tog = (cb) => { document.getElementById('f-foto').style.display = cb.checked ? 'none' : 'block'; };
+
+    function fecharModal() { document.getElementById('modalApp').style.display = "none"; }
+
+    function salvarAcao() {
+        const obs = document.getElementById('f2').value;
+        if(!obs) return alert("Preencha os campos obrigatórios!");
+
+        let dados = JSON.parse(localStorage.getItem('ocorrencias') || '[]');
+        let idx = dados.findIndex(o => o.id === itemAtualId);
+        
+        dados[idx].status_fluxo = "Solicitado: " + tipoAtual;
+        localStorage.setItem('ocorrencias', JSON.stringify(dados));
+        
+        alert("Enviado com sucesso!");
+        fecharModal();
+        renderizar();
+    }
+
+    window.onload = renderizar;
+</script>
+</body>
+</html>
