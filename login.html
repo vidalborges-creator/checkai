@@ -10,46 +10,47 @@
         .logo { font-size: 32px; font-weight: bold; color: #2c3e50; margin-bottom: 5px; }
         .logo span { color: #3498db; }
         input { width: 100%; padding: 15px; margin: 10px 0; border: 1px solid #ddd; border-radius: 12px; box-sizing: border-box; }
-        .btn-login { width: 100%; padding: 15px; background: #2c3e50; color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; }
-        .error-msg { color: #e74c3c; font-size: 12px; margin-top: 10px; display: none; }
+        .btn-login { width: 100%; padding: 15px; background: #2c3e50; color: white; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .error { color: #e74c3c; font-size: 12px; margin-top: 10px; display: none; }
     </style>
 </head>
 <body>
     <div class="login-container">
         <div class="logo">Check<span>Ai</span></div>
-        <p style="color: #7f8c8d; font-size: 14px;">Gestão de Ocorrências</p>
-        <input type="text" id="usuario" placeholder="Usuário">
-        <input type="password" id="senha" placeholder="Senha">
-        <div id="msgErro" class="error-msg">Usuário ou senha incorretos!</div>
-        <button class="btn-login" onclick="autenticar()">ENTRAR</button>
+        <p style="color:#7f8c8d; font-size:14px;">Acesso ao Sistema</p>
+        <input type="text" id="user" placeholder="Usuário">
+        <input type="password" id="pass" placeholder="Senha">
+        <div id="msg" class="error">Acesso negado ou dados incorretos!</div>
+        <button class="btn-login" onclick="entrar()">ENTRAR</button>
     </div>
 
     <script>
-        function inicializar() {
-            // Limpa qualquer login residual ao abrir a tela
+        function init() {
             localStorage.removeItem('usuario_logado');
-            
-            let usuarios = JSON.parse(localStorage.getItem('usuarios_checkai') || '[]');
-            if (usuarios.length === 0) {
-                usuarios.push({nome: "Desenvolvedor", user: "admin", senha: "123", perfil: "admin"});
-                localStorage.setItem('usuarios_checkai', JSON.stringify(usuarios));
+            let u = JSON.parse(localStorage.getItem('usuarios_checkai') || '[]');
+            if(u.length === 0) {
+                u.push({nome: "Desenvolvedor", user: "admin", senha: "123", perfil: "admin", status: "Ativo"});
+                localStorage.setItem('usuarios_checkai', JSON.stringify(u));
             }
         }
 
-        function autenticar() {
-            const userIn = document.getElementById('usuario').value;
-            const senhaIn = document.getElementById('senha').value;
-            const usuarios = JSON.parse(localStorage.getItem('usuarios_checkai') || '[]');
-            const encontrado = usuarios.find(u => u.user === userIn && u.senha === senhaIn);
+        function entrar() {
+            const userIn=document.getElementById('user').value, passIn=document.getElementById('pass').value;
+            const users=JSON.parse(localStorage.getItem('usuarios_checkai') || '[]');
+            const logado = users.find(i => i.user === userIn && i.senha === passIn);
 
-            if (encontrado) {
-                localStorage.setItem('usuario_logado', JSON.stringify(encontrado));
+            if(logado) {
+                if(logado.status === 'Inativo') {
+                    alert("Seu acesso foi desativado pelo administrador.");
+                    return;
+                }
+                localStorage.setItem('usuario_logado', JSON.stringify(logado));
                 window.location.href = 'index.html';
             } else {
-                document.getElementById('msgErro').style.display = 'block';
+                document.getElementById('msg').style.display = 'block';
             }
         }
-        window.onload = inicializar;
+        window.onload = init;
     </script>
 </body>
 </html>

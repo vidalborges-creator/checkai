@@ -2,20 +2,29 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Usuários - CheckAi</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerenciar Usuários - CheckAi</title>
     <style>
         body { font-family: 'Segoe UI', sans-serif; background: #f4f7f6; padding: 20px; }
-        .container { max-width: 500px; margin: auto; background: white; padding: 30px; border-radius: 20px; }
-        input, select { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; }
-        .btn-add { width: 100%; background: #2ecc71; color: white; border: none; padding: 15px; border-radius: 10px; font-weight: bold; cursor: pointer; }
-        .user-card { border-bottom: 1px solid #eee; padding: 10px; display: flex; justify-content: space-between; font-size: 14px; }
+        .container { max-width: 600px; margin: auto; background: white; padding: 30px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        h2 { color: #2c3e50; margin-top: 0; }
+        input, select { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; }
+        .btn-cadastrar { width: 100%; background: #2ecc71; color: white; border: none; padding: 15px; border-radius: 10px; font-weight: bold; cursor: pointer; }
+        .user-list { margin-top: 30px; border-top: 1px solid #eee; padding-top: 20px; }
+        .user-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #f9f9f9; font-size: 14px; }
+        .badge { padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: bold; text-transform: uppercase; }
+        .ativo { background: #d4edda; color: #155724; }
+        .inativo { background: #f8d7da; color: #721c24; }
+        .btn-status { border: none; padding: 8px 12px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 11px; }
+        .back-link { display: block; margin-bottom: 20px; text-decoration: none; color: #3498db; font-weight: bold; }
     </style>
 </head>
 <body>
     <div class="container">
-        <a href="index.html" style="text-decoration:none; color:#3498db;">← Voltar</a>
-        <h2>Cadastrar Usuário</h2>
-        <input type="text" id="n" placeholder="Nome">
+        <a href="index.html" class="back-link">← Voltar ao Menu</a>
+        <h2>Gerenciar Usuários</h2>
+        
+        <input type="text" id="n" placeholder="Nome Completo">
         <input type="text" id="u" placeholder="Login">
         <input type="password" id="s" placeholder="Senha">
         <select id="p">
@@ -23,22 +32,56 @@
             <option value="gestor">Gestor</option>
             <option value="admin">Administrador</option>
         </select>
-        <button class="btn-add" onclick="add()">CADASTRAR</button>
-        <div id="lista" style="margin-top:20px;"></div>
+        
+        <button class="btn-cadastrar" onclick="cadastrar()">CADASTRAR USUÁRIO</button>
+
+        <div class="user-list">
+            <h3>Usuários Registrados</h3>
+            <div id="lista"></div>
+        </div>
     </div>
+
     <script>
-        function add() {
+        function cadastrar() {
             const nome=document.getElementById('n').value, user=document.getElementById('u').value, senha=document.getElementById('s').value, perfil=document.getElementById('p').value;
-            if(!nome || !user || !senha) return alert("Preencha tudo!");
+            if(!nome || !user || !senha) return alert("Preencha todos os campos!");
+
             let users = JSON.parse(localStorage.getItem('usuarios_checkai') || '[]');
-            users.push({nome, user, senha, perfil});
+            if(users.find(item => item.user === user)) return alert("Este login já existe!");
+
+            // Novo usuário já nasce 'ativo'
+            users.push({ nome, user, senha, perfil, status: 'Ativo' });
             localStorage.setItem('usuarios_checkai', JSON.stringify(users));
             location.reload();
         }
-        window.onload = () => {
+
+        function alternarStatus(login) {
+            let users = JSON.parse(localStorage.getItem('usuarios_checkai') || '[]');
+            let idx = users.findIndex(item => item.user === login);
+            
+            if(users[idx].user === 'admin') return alert("O desenvolvedor mestre não pode ser inativado!");
+
+            users[idx].status = users[idx].status === 'Ativo' ? 'Inativo' : 'Ativo';
+            localStorage.setItem('usuarios_checkai', JSON.stringify(users));
+            renderizar();
+        }
+
+        function renderizar() {
+            const lista = document.getElementById('lista');
             const users = JSON.parse(localStorage.getItem('usuarios_checkai') || '[]');
-            document.getElementById('lista').innerHTML = users.map(u => `<div class="user-card"><b>${u.user}</b> <span>${u.perfil}</span></div>`).join('');
-        };
+            lista.innerHTML = users.map(u => `
+                <div class="user-item" style="opacity: ${u.status === 'Ativo' ? '1' : '0.6'}">
+                    <div>
+                        <strong>${u.user}</strong> <span class="badge ${u.status === 'Ativo' ? 'ativo' : 'inativo'}">${u.status}</span>
+                        <br><small>${u.nome} (${u.perfil})</small>
+                    </div>
+                    <button class="btn-status" onclick="alternarStatus('${u.user}')" style="background: ${u.status === 'Ativo' ? '#e74c3c' : '#2ecc71'}; color: white;">
+                        ${u.status === 'Ativo' ? 'INATIVAR' : 'ATIVAR'}
+                    </button>
+                </div>
+            `).join('');
+        }
+        window.onload = renderizar;
     </script>
 </body>
 </html>
