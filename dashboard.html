@@ -10,41 +10,48 @@
         .container { max-width: 900px; margin: auto; }
         .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
         
+        /* Botão Novo Registro */
         .btn-novo { 
             background: #2ecc71; color: white; text-decoration: none; padding: 15px 25px; 
             border-radius: 12px; font-weight: bold; display: inline-flex; align-items: center; gap: 10px;
             box-shadow: 0 4px 15px rgba(46,204,113,0.3); transition: 0.3s; margin-bottom: 20px; border: none; cursor: pointer;
         }
+        .btn-novo:hover { transform: translateY(-2px); filter: brightness(1.1); }
 
+        /* Estilo dos Cards */
         .card { 
             background: white; border-radius: 20px; padding: 25px; margin-bottom: 15px; 
-            box-shadow: 0 8px 20px rgba(0,0,0,0.05); border-left: 10px solid #f1c40f;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.05); border-left: 10px solid #ddd;
         }
+        .card h3 { margin: 0; color: #2c3e50; font-size: 18px; text-transform: uppercase; line-height: 1.4; }
+        .card p { margin: 8px 0; font-size: 14px; color: #7f8c8d; }
 
-        .status-badge { background: #95a5a6; color: white; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: bold; }
+        .status-badge { background: #34495e; color: white; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: bold; }
 
+        /* Barra de Ações */
         .actions-bar { display: flex; gap: 10px; border-top: 1px solid #eee; padding-top: 15px; margin-top: 15px; }
         .btn-action { 
             border: none; padding: 10px 15px; border-radius: 8px; cursor: pointer; 
-            font-size: 13px; font-weight: bold; display: flex; align-items: center; gap: 6px; color: white;
+            font-size: 12px; font-weight: bold; display: flex; align-items: center; gap: 6px; color: white; transition: 0.2s;
         }
-
-        /* Estilo idêntico à imagem image_e222df */
         .btn-enc { background: #3498db; }
         .btn-con { background: #2ecc71; }
         .btn-can { background: #e67e22; }
+        .btn-action:hover { opacity: 0.9; transform: scale(1.03); }
 
+        /* Modais */
         .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); align-items: center; justify-content: center; }
-        .modal-box { background: white; padding: 30px; border-radius: 20px; width: 90%; max-width: 400px; }
-        input, textarea { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; }
+        .modal-box { background: white; padding: 30px; border-radius: 25px; width: 90%; max-width: 450px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+        input, textarea { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; font-family: inherit; }
+        .preview-img { width: 100%; border-radius: 12px; margin: 10px 0; display: none; border: 1px solid #eee; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <div class="header">
-        <a href="index.html" style="text-decoration:none; color:#3498db; font-weight:bold;">← Voltar</a>
-        <h2 style="margin:0;">Painel de Controle</h2>
+        <a href="index.html" style="text-decoration:none; color:#3498db; font-weight:bold;">← Voltar ao Menu</a>
+        <h2 style="margin:0; color: #2c3e50;">Painel de Controle</h2>
     </div>
 
     <a href="registro.html" class="btn-novo">
@@ -52,103 +59,113 @@
     </a>
 
     <div id="listaOcorrencias">
-        </div>
+        <p style="text-align:center; color:#999; margin-top:40px;">Buscando registros...</p>
+    </div>
 </div>
 
-<div id="modalApp" class="modal">
+<div id="modalFluxo" class="modal">
     <div class="modal-box">
-        <h3 id="mTitulo">Ação</h3>
-        <div id="mCampos"></div>
-        <button onclick="salvarAcao()" id="mBotao" style="width:100%; padding:15px; border-radius:12px; border:none; color:white; font-weight:bold; cursor:pointer; margin-top:10px;"></button>
-        <button onclick="fecharModal()" style="width:100%; background:none; border:none; color:gray; cursor:pointer; margin-top:10px; width:100%;">Cancelar</button>
+        <h3 id="mTitulo" style="margin-top:0; color:#2c3e50;">Ação</h3>
+        <div id="mCorpo"></div>
+        <button onclick="enviarParaGestor()" id="mBotao" style="width:100%; padding:15px; border-radius:12px; border:none; color:white; font-weight:bold; cursor:pointer; margin-top:10px;"></button>
+        <button onclick="fechar()" style="width:100%; background:none; border:none; color:#7f8c8d; cursor:pointer; margin-top:10px; font-weight:bold;">Cancelar</button>
     </div>
 </div>
 
 <script>
-    let itemAtualId = null;
-    let tipoAtual = "";
+    let idAtivo = null;
+    let acaoAtiva = "";
 
-    function renderizar() {
-        const container = document.getElementById('listaOcorrencias');
-        // Importante: garante que 'ocorrencias' exista como array
+    function carregar() {
+        const lista = document.getElementById('listaOcorrencias');
         const dados = JSON.parse(localStorage.getItem('ocorrencias') || '[]');
 
         if (dados.length === 0) {
-            container.innerHTML = `<div style="text-align:center; padding:50px; color:#999; background:white; border-radius:20px;">Nenhum registro encontrado. Clique em "Novo Registro" para começar.</div>`;
+            lista.innerHTML = `<div style="text-align:center; padding:50px; color:#999; background:white; border-radius:20px;">Nenhum registro encontrado.</div>`;
             return;
         }
 
-        // Ordenação: Mais recente primeiro
+        // Ordenação: Mais recente (ID maior) para o mais antigo
         dados.sort((a, b) => b.id - a.id);
 
-        container.innerHTML = dados.map(occ => `
-            <div class="card">
-                <h3 style="margin:0;">${occ.setor || '1'} - ${occ.local || '1'}</h3>
-                <p style="margin:10px 0;">Status: <span class="status-badge">${occ.status_fluxo || 'Pendente'}</span></p>
-                <div class="actions-bar">
-                    <button class="btn-action btn-enc" onclick="abrir('Encaminhar', ${occ.id})"><i class="fas fa-paper-plane"></i> Encaminhar</button>
-                    <button class="btn-action btn-con" onclick="abrir('Concluir', ${occ.id})"><i class="fas fa-check"></i> Concluir</button>
-                    <button class="btn-action btn-can" onclick="abrir('Cancelar', ${occ.id})"><i class="fas fa-times"></i> Cancelar</button>
+        lista.innerHTML = dados.map(occ => {
+            const corPrio = occ.prioridade === 'Alta' ? '#e74c3c' : (occ.prioridade === 'Média' ? '#f1c40f' : '#2ecc71');
+            return `
+                <div class="card" style="border-left-color: ${corPrio}">
+                    <h3>${occ.descricao || 'DESCRIÇÃO NÃO INFORMADA'}</h3>
+                    <p><strong>Localização:</strong> ${occ.setor || '-'} | ${occ.local || '-'}</p>
+                    <p><strong>Status:</strong> <span class="status-badge">${occ.status_fluxo || 'Aguardando'}</span></p>
+                    
+                    <div class="actions-bar">
+                        <button class="btn-action btn-enc" onclick="abrirModal('Encaminhar', ${occ.id})"><i class="fas fa-paper-plane"></i> Encaminhar</button>
+                        <button class="btn-action btn-con" onclick="abrirModal('Concluir', ${occ.id})"><i class="fas fa-check"></i> Concluir</button>
+                        <button class="btn-action btn-can" onclick="abrirModal('Cancelar', ${occ.id})"><i class="fas fa-times"></i> Cancelar</button>
+                    </div>
                 </div>
-            </div>
-        `).join('');
+            `;
+        }).join('');
     }
 
-    function abrir(tipo, id) {
-        itemAtualId = id;
-        tipoAtual = tipo;
-        const m = document.getElementById('modalApp');
-        const t = document.getElementById('mTitulo');
-        const c = document.getElementById('mCampos');
-        const b = document.getElementById('mBotao');
+    function abrirModal(tipo, id) {
+        idAtivo = id;
+        acaoAtiva = tipo;
+        const modal = document.getElementById('modalFluxo');
+        const corpo = document.getElementById('mCorpo');
+        const btn = document.getElementById('mBotao');
+        const tit = document.getElementById('mTitulo');
 
-        m.style.display = "flex";
-        c.innerHTML = "";
+        modal.style.display = "flex";
+        corpo.innerHTML = "";
 
-        if(tipo === 'Encaminhar') {
-            t.innerText = "Encaminhar Registro";
-            c.innerHTML = '<input type="email" id="f1" placeholder="E-mail destinatário" required><textarea id="f2" placeholder="Informações gerais" required></textarea>';
-            b.innerText = "ENCAMINHAR AGORA";
-            b.style.background = "#3498db";
-        } else if(tipo === 'Concluir') {
-            t.innerText = "Solicitar Conclusão";
-            c.innerHTML = '<div id="f-foto"><input type="file" accept="image/*" onchange="window.preview(event)"><img id="p-img" style="width:100%; display:none; margin:10px 0; border-radius:10px;"></div><label style="font-size:12px;"><input type="checkbox" onchange="window.tog(this)"> Inativar obrigação de foto</label><textarea id="f2" placeholder="O que foi realizado?" required></textarea>';
-            b.innerText = "SOLICITAR CONCLUSÃO";
-            b.style.background = "#2ecc71";
+        if (tipo === 'Encaminhar') {
+            tit.innerText = "Encaminhar Ocorrência";
+            corpo.innerHTML = `<input type="email" id="email" placeholder="E-mail do responsável (Obrigatório)" required>
+                               <textarea id="obs" placeholder="Informações gerais" rows="4" required></textarea>`;
+            btn.innerText = "ENCAMINHAR PARA GESTOR";
+            btn.style.background = "#3498db";
+        } else if (tipo === 'Concluir') {
+            tit.innerText = "Solicitar Conclusão";
+            corpo.innerHTML = `<div id="box-foto"><input type="file" id="foto" accept="image/*" onchange="preview(event)">
+                               <img id="img-p" class="preview-img"></div>
+                               <label style="font-size:13px; display:block; margin:10px 0;"><input type="checkbox" onchange="tog(this)"> Inativar obrigação de foto</label>
+                               <textarea id="obs" placeholder="Descreva o que foi realizado (Obrigatório)" rows="4" required></textarea>`;
+            btn.innerText = "SOLICITAR CONCLUSÃO";
+            btn.style.background = "#2ecc71";
         } else {
-            t.innerText = "Solicitar Cancelamento";
-            c.innerHTML = '<textarea id="f2" placeholder="Motivo do cancelamento" required></textarea>';
-            b.innerText = "SOLICITAR CANCELAMENTO";
-            b.style.background = "#e67e22";
+            tit.innerText = "Solicitar Cancelamento";
+            corpo.innerHTML = `<textarea id="obs" placeholder="Descreva o motivo do cancelamento (Obrigatório)" rows="4" required></textarea>`;
+            btn.innerText = "CONFIRMAR SOLICITAÇÃO";
+            btn.style.background = "#e67e22";
         }
     }
 
     window.preview = (e) => {
         const reader = new FileReader();
-        reader.onload = () => { const i = document.getElementById('p-img'); i.src = reader.result; i.style.display = "block"; };
+        reader.onload = () => { const img = document.getElementById('img-p'); img.src = reader.result; img.style.display = "block"; };
         reader.readAsDataURL(e.target.files[0]);
     };
 
-    window.tog = (cb) => { document.getElementById('f-foto').style.display = cb.checked ? 'none' : 'block'; };
+    window.tog = (c) => { document.getElementById('box-foto').style.display = c.checked ? 'none' : 'block'; };
 
-    function fecharModal() { document.getElementById('modalApp').style.display = "none"; }
+    function fechar() { document.getElementById('modalFluxo').style.display = "none"; }
 
-    function salvarAcao() {
-        const obs = document.getElementById('f2').value;
-        if(!obs) return alert("Preencha os campos obrigatórios!");
+    function enviarParaGestor() {
+        const obs = document.getElementById('obs').value;
+        if (!obs) return alert("Por favor, preencha o campo de descrição!");
 
         let dados = JSON.parse(localStorage.getItem('ocorrencias') || '[]');
-        let idx = dados.findIndex(o => o.id === itemAtualId);
+        let idx = dados.findIndex(o => o.id === idAtivo);
         
-        dados[idx].status_fluxo = "Solicitado: " + tipoAtual;
+        // Define o status que o gestor verá
+        dados[idx].status_fluxo = "Solicitado: " + acaoAtiva;
         localStorage.setItem('ocorrencias', JSON.stringify(dados));
         
-        alert("Enviado com sucesso!");
-        fecharModal();
-        renderizar();
+        alert("Solicitação enviada ao Gestor com sucesso!");
+        fechar();
+        carregar();
     }
 
-    window.onload = renderizar;
+    window.onload = carregar;
 </script>
 </body>
 </html>
