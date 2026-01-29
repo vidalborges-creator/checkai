@@ -8,15 +8,15 @@
         body { font-family: 'Segoe UI', sans-serif; background: #f4f7f6; margin: 0; padding: 20px; }
         .container { max-width: 1000px; margin: auto; }
         .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .back-menu { text-decoration: none; color: #3498db; font-weight: bold; }
         
-        /* Cards de Ocorrência */
+        /* Ajuste do botão voltar para o menu principal */
+        .back-menu { text-decoration: none; color: #3498db; font-weight: bold; cursor: pointer; }
+        
         .card { background: white; border-radius: 15px; padding: 20px; margin-bottom: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; border-left: 8px solid #ddd; }
         .info h3 { margin: 0 0 5px 0; color: #2c3e50; }
         .info p { margin: 0; color: #7f8c8d; font-size: 14px; }
         .prio { font-size: 10px; font-weight: bold; padding: 3px 8px; border-radius: 5px; color: white; text-transform: uppercase; }
         
-        /* Botões de Ação */
         .actions { display: flex; gap: 10px; }
         .btn-circle { width: 40px; height: 40px; border-radius: 50%; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 18px; transition: 0.3s; color: white; }
         .enc { background: #3498db; }
@@ -24,11 +24,9 @@
         .can { background: #95a5a6; }
         .btn-circle:hover { transform: scale(1.1); opacity: 0.9; }
 
-        /* Modal */
         .modal { display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); align-items: center; justify-content: center; }
         .modal-content { background: white; padding: 30px; border-radius: 20px; width: 400px; }
-        .modal h3 { margin-top: 0; }
-        textarea, input, select { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
+        textarea, input { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
         .modal-btns { display: flex; gap: 10px; margin-top: 20px; }
         .btn-save { flex: 2; background: #2c3e50; color: white; border: none; padding: 12px; border-radius: 10px; cursor: pointer; font-weight: bold; }
         .btn-cancel { flex: 1; background: #eee; border: none; padding: 12px; border-radius: 10px; cursor: pointer; }
@@ -50,19 +48,19 @@
             <h3 id="mTitulo">Ação</h3>
             <div id="campoEnc" style="display:none;">
                 <label>Encaminhar para:</label>
-                <input type="text" id="f1" placeholder="Nome do responsável ou setor">
+                <input type="text" id="f1" placeholder="Nome do responsável">
             </div>
-            <label id="l2">Justificativa/Observação:</label>
-            <textarea id="f2" rows="4" required></textarea>
+            <label>Justificativa:</label>
+            <textarea id="f2" rows="4"></textarea>
             
             <div id="campoFoto" style="display:none;">
-                <label>Foto da Evidência (Obrigatório):</label>
+                <label>Foto da Evidência:</label>
                 <input type="file" id="fFoto" accept="image/*" onchange="preview(this)">
                 <img id="imgPrev" style="width:100%; display:none; margin-top:10px; border-radius:10px;">
             </div>
 
             <div class="modal-btns">
-                <button class="btn-save" onclick="salvar()">Enviar Solicitação</button>
+                <button class="btn-save" onclick="salvarAcao()">Enviar Solicitação</button>
                 <button class="btn-cancel" onclick="fechar()">Sair</button>
             </div>
         </div>
@@ -77,27 +75,22 @@
             const dados = JSON.parse(localStorage.getItem('ocorrencias') || '[]');
             lista.innerHTML = "";
 
-            if(dados.length === 0) {
-                lista.innerHTML = "<p style='text-align:center; color:#999;'>Nenhuma ocorrência registrada.</p>";
-                return;
-            }
-
             dados.forEach(occ => {
                 const corPrio = occ.prioridade === 'Alta' ? '#e74c3c' : (occ.prioridade === 'Média' ? '#f1c40f' : '#2ecc71');
                 const statusExibido = occ.status_temp || occ.status || 'Em Aberto';
                 
-                let botoes = "";
-                // Lógica de Aprovação para o Gestor
+                let botoesAcao = "";
+                // Se houver solicitação pendente, mostra botões de Aprovar/Reprovar
                 if(occ.status_temp === "Aguardando Aprovação") {
-                    botoes = `
+                    botoesAcao = `
                         <button class="btn-circle con" title="APROVAR" onclick="decidir(${occ.id}, 'aprovar')">✔️</button>
                         <button class="btn-circle" title="REPROVAR" onclick="decidir(${occ.id}, 'reprovar')" style="background:#e67e22">❌</button>
                     `;
                 } else if(occ.status !== 'Concluído' && occ.status !== 'Cancelado') {
-                    botoes = `
-                        <button class="btn-circle enc" title="ENCAMINHAR" onclick="abrir(${occ.id}, 'enc')">📧</button>
-                        <button class="btn-circle con" title="SOLICITAR CONCLUSÃO" onclick="abrir(${occ.id}, 'con')">✅</button>
-                        <button class="btn-circle can" title="SOLICITAR CANCELAMENTO" onclick="abrir(${occ.id}, 'can')">🚫</button>
+                    botoesAcao = `
+                        <button class="btn-circle enc" title="ENCAMINHAR" onclick="abrirModal(${occ.id}, 'enc')">📧</button>
+                        <button class="btn-circle con" title="SOLICITAR CONCLUSÃO" onclick="abrirModal(${occ.id}, 'con')">✅</button>
+                        <button class="btn-circle can" title="SOLICITAR CANCELAMENTO" onclick="abrirModal(${occ.id}, 'can')">🚫</button>
                     `;
                 }
 
@@ -110,7 +103,7 @@
                             <p><strong>Previsão:</strong> ${occ.conclusao || 'N/A'}</p>
                         </div>
                         <div class="actions">
-                            ${botoes}
+                            ${botoesAcao}
                             <button class="btn-circle" style="background:#2c3e50" onclick="window.location.href='detalhes.html?id=${occ.id}'">👁️</button>
                         </div>
                     </div>
@@ -118,53 +111,35 @@
             });
         }
 
-        function abrir(id, tipo) {
+        function abrirModal(id, tipo) {
             selId = id;
             selTipo = tipo;
-            const m = document.getElementById('modalAcao');
-            m.style.display = 'flex';
-            
+            document.getElementById('modalAcao').style.display = 'flex';
             document.getElementById('campoEnc').style.display = tipo === 'enc' ? 'block' : 'none';
             document.getElementById('campoFoto').style.display = tipo === 'con' ? 'block' : 'none';
-            document.getElementById('mTitulo').innerText = tipo === 'enc' ? 'Encaminhar Ação' : (tipo === 'con' ? 'Solicitar Conclusão' : 'Solicitar Cancelamento');
         }
 
-        function preview(input) {
-            if (input.files && input.files[0]) {
-                const reader = new FileReader();
-                reader.onload = e => {
-                    const img = document.getElementById('imgPrev');
-                    img.src = e.target.result;
-                    img.style.display = 'block';
-                };
-                reader.readAsDataURL(input.files[0]);
-            }
-        }
-
-        function salvar() {
+        function salvarAcao() {
             let dados = JSON.parse(localStorage.getItem('ocorrencias') || '[]');
             let idx = dados.findIndex(o => o.id == selId);
-            const justificativa = document.getElementById('f2').value;
+            const just = document.getElementById('f2').value;
 
-            if(!justificativa) return alert("Por favor, preencha a justificativa.");
+            if(!just) return alert("Preencha a justificativa!");
 
             if(selTipo === 'con') {
-                dados[idx].solicitacao = "Conclusão";
                 dados[idx].status_temp = "Aguardando Aprovação";
-                dados[idx].justificativa_conclusao = justificativa;
+                dados[idx].solicitacao = "Conclusão";
                 const img = document.getElementById('imgPrev');
                 if(img.style.display === 'block') dados[idx].foto_conclusao = img.src;
             } else if(selTipo === 'can') {
-                dados[idx].solicitacao = "Cancelamento";
                 dados[idx].status_temp = "Aguardando Aprovação";
-                dados[idx].justificativa_cancelamento = justificativa;
-            } else if(selTipo === 'enc') {
-                dados[idx].responsavel = document.getElementById('f1').value;
+                dados[idx].solicitacao = "Cancelamento";
+            } else {
                 dados[idx].status = "Em Andamento";
+                dados[idx].responsavel = document.getElementById('f1').value;
             }
 
             localStorage.setItem('ocorrencias', JSON.stringify(dados));
-            alert("Ação registrada com sucesso!");
             fechar();
             carregar();
         }
@@ -174,16 +149,11 @@
             let idx = dados.findIndex(o => o.id == id);
             
             if(decisao === 'aprovar') {
-                dados[idx].status = (dados[idx].solicitacao === "Conclusão") ? "Concluído" : "Cancelado";
-                alert("Solicitação APROVADA. Status atualizado.");
-            } else {
-                alert("Solicitação REPROVADA. O registro permanece em andamento.");
+                dados[idx].status = dados[idx].solicitacao === "Conclusão" ? "Concluído" : "Cancelado";
             }
             
-            // Limpa os pedidos pendentes após a decisão
-            delete dados[idx].solicitacao;
             delete dados[idx].status_temp;
-            
+            delete dados[idx].solicitacao;
             localStorage.setItem('ocorrencias', JSON.stringify(dados));
             carregar();
         }
@@ -191,7 +161,17 @@
         function fechar() {
             document.getElementById('modalAcao').style.display = 'none';
             document.getElementById('f2').value = "";
-            document.getElementById('imgPrev').style.display = 'none';
+        }
+
+        function preview(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = e => {
+                    document.getElementById('imgPrev').src = e.target.result;
+                    document.getElementById('imgPrev').style.display = 'block';
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
         }
 
         window.onload = carregar;
