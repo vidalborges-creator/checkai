@@ -13,52 +13,55 @@
         body { font-family: 'Segoe UI', sans-serif; background: var(--light); margin: 0; padding: 20px; }
         .container { max-width: 900px; margin: auto; }
         
+        /* Cabeçalho */
         .header-acao { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .btn-voltar { text-decoration: none; color: var(--primary); font-weight: bold; font-size: 14px; }
+        .btn-voltar { text-decoration: none; color: var(--primary); font-weight: bold; }
         
-        /* Área do Botão Novo Registro */
-        .topo-acoes { text-align: center; margin-bottom: 30px; }
+        /* Botão Novo Registro - FIXO NO TOPO */
+        .topo-acoes { text-align: center; margin-bottom: 30px; padding: 10px; background: white; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.03); }
         .btn-novo { 
             display: inline-block; background: #27ae60; color: white !important; text-decoration: none; 
-            padding: 15px 35px; border-radius: 12px; font-weight: bold; font-size: 16px;
-            box-shadow: 0 4px 15px rgba(39, 174, 96, 0.3); transition: 0.3s; border: none; cursor: pointer;
+            padding: 15px 40px; border-radius: 12px; font-weight: bold; font-size: 16px;
+            box-shadow: 0 4px 15px rgba(39, 174, 96, 0.3); transition: 0.3s; border: none;
         }
         .btn-novo:hover { transform: scale(1.02); background: #219150; }
 
-        /* Estilo dos Cards conforme imagens */
+        /* Container Seguro para os Cards */
+        #listaOcorrencias { width: 100%; }
+
+        /* Cards de Ocorrência */
         .card { 
             background: white; border-radius: 20px; padding: 20px; margin-bottom: 20px; 
             box-shadow: 0 8px 20px rgba(0,0,0,0.05); border-left: 10px solid #ddd; 
-            position: relative; transition: 0.3s;
+            transition: 0.3s;
         }
         .prio-Alta { border-left-color: var(--danger); }
         .prio-Média { border-left-color: var(--warning); }
         .prio-Baixa { border-left-color: var(--success); }
         
-        .card.reprovado { background-color: #fffafa; border-left-color: var(--danger); }
+        /* Destaque para Reprovados */
+        .card.reprovado { background-color: #fffafa; border-left-width: 15px; border-left-color: var(--danger); }
 
         .status-tag { font-size: 10px; font-weight: bold; text-transform: uppercase; padding: 5px 12px; border-radius: 6px; background: #f0f0f0; color: #777; }
         .tag-reprovado { background: #fee2e2; color: #dc2626; }
 
-        .actions-bar { display: flex; gap: 10px; margin-top: 15px; }
+        .actions-bar { display: flex; gap: 10px; margin-top: 15px; border-top: 1px solid #f9f9f9; padding-top: 15px; }
         .btn-action { flex: 1; border: none; padding: 12px; border-radius: 10px; color: white; font-weight: bold; font-size: 11px; cursor: pointer; text-transform: uppercase; }
         .btn-encaminhar { background: var(--primary); }
         .btn-concluir { background: var(--success); }
         .btn-cancelar { background: var(--danger); }
-        .btn-disabled { background: #e0e0e0 !important; color: #999 !important; cursor: not-allowed; }
+        .btn-disabled { background: #e0e0e0 !important; color: #999 !important; cursor: not-allowed; opacity: 0.6; }
 
         /* Modal */
         .modal { display: none; position: fixed; z-index: 9999; left:0; top:0; width:100%; height:100%; background: rgba(0,0,0,0.7); align-items:center; justify-content:center; }
-        .modal-box { background: white; padding: 30px; border-radius: 25px; width: 90%; max-width: 500px; max-height: 90vh; overflow-y: auto; }
-        
-        #imgPreview { width: 100%; border-radius: 15px; margin-top: 15px; border: 2px dashed #ddd; }
+        .modal-box { background: white; padding: 30px; border-radius: 25px; width: 90%; max-width: 500px; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <div class="header-acao">
-        <a href="index.html" class="btn-voltar">← Voltar ao Menu</a>
+        <a href="index.html" class="btn-voltar">← Voltar</a>
         <h2 style="margin:0; color: var(--dark);">Gestão Operacional</h2>
     </div>
 
@@ -67,25 +70,55 @@
     </div>
 
     <div id="listaOcorrencias">
-        </div>
-</div>
-
-<div id="modalAcao" class="modal">
-    <div class="modal-box">
-        <h2 id="modalTitulo" style="margin-top:0; color:var(--dark);">Concluir</h2>
-        <div id="corpoAcao"></div>
-        <button id="btnConfirmar" onclick="salvarAcao()" class="btn-action btn-concluir" style="width:100%; margin-top:20px; padding:18px; font-size:14px;">CONFIRMAR</button>
-        <button onclick="fecharModal()" style="background:none; border:none; color:gray; width:100%; margin-top:15px; cursor:pointer;">Cancelar</button>
+        <p style="text-align:center; color:gray;">Carregando registros...</p>
     </div>
 </div>
 
 <script>
-    let idAtual = null;
-    let tipoAtual = "";
-
     function carregar() {
         const containerLista = document.getElementById('listaOcorrencias');
-        const dados = JSON.parse(localStorage.getItem('ocorrencias') || '[]').reverse();
+        
+        // Busca os dados do localStorage
+        const dadosJson = localStorage.getItem('ocorrencias');
+        const dados = JSON.parse(dadosJson || '[]').reverse();
 
         if (dados.length === 0) {
-            containerLista.innerHTML = `<div style="text-align:center; padding:50px; color:gray;">Nenhum registro encontrado.
+            containerLista.innerHTML = `<div style="text-align:center; padding:50px; color:gray;">Nenhum registro encontrado. Clique em "+ NOVO REGISTRO" para começar.</div>`;
+            return;
+        }
+
+        // Monta o HTML dos cards
+        containerLista.innerHTML = dados.map(o => {
+            const status = o.status_fluxo || 'ABERTO';
+            const isReprovado = status === "Reprovado pelo Gestor";
+            const isFinalizado = status === "Concluído" || status === "Cancelado";
+            const isPendente = status.startsWith("Solicitado");
+            
+            // Botões travam se estiver finalizado ou aguardando aprovação
+            const bloquear = isFinalizado || isPendente;
+
+            return `
+                <div class="card prio-${o.prioridade} ${isReprovado ? 'reprovado' : ''}">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <span class="status-tag ${isReprovado ? 'tag-reprovado' : ''}">${status}</span>
+                        <small style="color:#bbb;">#${o.id || '---'}</small>
+                    </div>
+                    <h3 style="margin:12px 0 5px 0; color:#333; text-transform:uppercase;">${o.descricao}</h3>
+                    <p style="margin:0; color:#888; font-size:13px;">Setor: ${o.setor} | Local: ${o.local}</p>
+                    
+                    <div class="actions-bar">
+                        <button class="btn-action btn-encaminhar ${bloquear ? 'btn-disabled' : ''}">Encaminhar</button>
+                        <button class="btn-action btn-concluir ${bloquear ? 'btn-disabled' : ''}">Concluir</button>
+                        <button class="btn-action btn-cancelar ${bloquear ? 'btn-disabled' : ''}">Cancelar</button>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    // Executa a função assim que a página termina de carregar
+    window.onload = carregar;
+</script>
+
+</body>
+</html>
