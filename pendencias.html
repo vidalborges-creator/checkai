@@ -3,146 +3,62 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pendências - CheckAi</title>
+    <title>Aprovações Pendentes - CheckAi</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #f4f7f6; margin: 0; padding: 20px; }
+        :root { --primary: #3498db; --success: #2ecc71; --danger: #e74c3c; --dark: #2c3e50; --light: #f4f7f6; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--light); margin: 0; padding: 20px; }
         .container { max-width: 800px; margin: auto; }
-        .card { background: white; border-radius: 20px; padding: 25px; margin-bottom: 15px; box-shadow: 0 8px 20px rgba(0,0,0,0.05); border-left: 10px solid #ddd; }
-        
-        /* Cores de Alerta */
-        .borda-pendente { border-left-color: #3498db; }
-        .borda-reprovado { border-left-color: #e74c3c; }
-
-        .badge { padding: 5px 12px; border-radius: 8px; font-size: 11px; font-weight: bold; text-transform: uppercase; margin-bottom: 10px; display: inline-block; }
-        .bg-reprovado { background: #fee2e2; color: #dc2626; }
-        .bg-aguardando { background: #e3f2fd; color: #1976d2; }
-
-        .motivo-reprovacao { background: #fff5f5; border: 1px solid #feb2b2; padding: 15px; border-radius: 12px; margin: 15px 0; color: #c53030; font-size: 14px; }
-
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .card { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-bottom: 15px; border-left: 5px solid var(--primary); }
+        .badge { padding: 4px 8px; border-radius: 5px; font-size: 11px; font-weight: bold; text-transform: uppercase; background: #eee; }
         .actions { display: flex; gap: 10px; margin-top: 15px; }
-        .btn { border: none; padding: 12px; border-radius: 10px; cursor: pointer; font-weight: bold; color: white; flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none; }
-        .btn-view { background: #34495e; }
-        .btn-approve { background: #2ecc71; }
-        .btn-reject { background: #e74c3c; }
-        .btn-corrigir { background: #3498db; }
-
-        /* Modal */
-        .modal { display: none; position: fixed; z-index: 1001; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); overflow-y: auto; }
-        .modal-content { background: white; max-width: 600px; margin: 50px auto; padding: 30px; border-radius: 25px; position: relative; }
-        .detail-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; }
+        .btn { flex: 1; padding: 10px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; text-decoration: none; text-align: center; font-size: 12px; }
+        .btn-corrigir { background: var(--danger); color: white; }
+        .btn-aprovar { background: var(--success); color: white; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-        <a href="index.html" style="text-decoration:none; color:#3498db; font-weight:bold;">← Voltar ao Menu</a>
-        <h2 id="tituloPagina">Pendências</h2>
+    <div class="header">
+        <h2>Aprovações Pendentes</h2>
+        <a href="index.html" style="text-decoration:none; color:var(--primary);">Voltar</a>
     </div>
     <div id="listaPendencias"></div>
 </div>
 
-<div id="modalDetalhes" class="modal">
-    <div class="modal-content">
-        <h2 style="color:#2c3e50; border-bottom: 2px solid #3498db; padding-bottom:10px;">Ficha Completa</h2>
-        <div id="corpoDetalhes"></div>
-        <button class="btn btn-view" style="width:100%; margin-top:20px;" onclick="fecharModal()">FECHAR</button>
-    </div>
-</div>
-
 <script>
-    const sessao = JSON.parse(localStorage.getItem('usuarioLogado'));
-
-    function carregar() {
+    function carregarPendencias() {
         const lista = document.getElementById('listaPendencias');
-        const ocorrencias = JSON.parse(localStorage.getItem('ocorrencias') || '[]');
-        let filtrados = [];
+        const dados = JSON.parse(localStorage.getItem('ocorrencias') || '[]');
+        
+        // Filtra apenas o que está solicitado (aguardando gestor)
+        const pendentes = dados.filter(o => o.status_fluxo && o.status_fluxo.startsWith("Solicitado"));
 
-        // LÓGICA DE FILTRO CORRIGIDA
-        if (sessao.perfil === 'Gestor' || sessao.user === 'admin') {
-            document.getElementById('tituloPagina').innerText = "Aprovações do Gestor";
-            // Gestor vê o que colaboradores pediram para Concluir ou Cancelar
-            filtrados = ocorrencias.filter(o => o.status_fluxo === "Solicitado: Concluir" || o.status_fluxo === "Solicitado: Cancelar");
-        } else {
-            document.getElementById('tituloPagina').innerText = "Minhas Correções";
-            // Colaborador vê o que o Gestor REPROVOU e que pertence a ele
-            filtrados = ocorrencias.filter(o => o.status_fluxo === "Reprovado" && o.responsavel_login === sessao.user);
-        }
-
-        if (filtrados.length === 0) {
-            lista.innerHTML = "<p style='text-align:center; color:gray; margin-top:50px;'>Nenhuma pendência encontrada.</p>";
+        if (pendentes.length === 0) {
+            lista.innerHTML = "<p style='text-align:center; color:gray;'>Nenhuma pendência no momento.</p>";
             return;
         }
 
-        lista.innerHTML = filtrados.map(o => {
-            const ehReprovado = o.status_fluxo === "Reprovado";
-            return `
-                <div class="card ${ehReprovado ? 'borda-reprovado' : 'borda-pendente'}">
-                    <span class="badge ${ehReprovado ? 'bg-reprovado' : 'bg-aguardando'}">
-                        ${ehReprovado ? 'REPROVADO PELO GESTOR' : o.status_fluxo}
-                    </span>
-                    <h3 style="margin:5px 0;">${o.descricao}</h3>
-                    <p style="margin:0; font-size:14px; color:gray;">${o.setor} | ${o.local}</p>
-                    
-                    ${ehReprovado ? `
-                        <div class="motivo-reprovacao">
-                            <strong>Motivo da Devolução:</strong><br>
-                            ${o.motivo_reprovacao || 'Sem justificativa detalhada.'}
-                        </div>
-                    ` : ''}
-
-                    <div class="actions">
-                        <button class="btn btn-view" onclick="verDetalhes(${o.id})"><i class="fas fa-eye"></i> VER TUDO</button>
-                        
-                        ${ehReprovado ? `
-                            <a href="dashboard.html" class="btn btn-corrigir"><i class="fas fa-tools"></i> IR CORRIGIR</a>
-                        ` : `
-                            <button class="btn btn-approve" onclick="finalizar(${o.id}, true)">APROVAR</button>
-                            <button class="btn btn-reject" onclick="finalizar(${o.id}, false)">REPROVAR</button>
-                        `}
-                    </div>
+        lista.innerHTML = pendentes.map(o => `
+            <div class="card">
+                <div style="display:flex; justify-content:space-between;">
+                    <span class="badge">${o.status_fluxo}</span>
+                    <small>#${o.id}</small>
                 </div>
-            `;
-        }).join('');
+                <h3 style="margin:10px 0 5px 0;">${o.descricao}</h3>
+                <p style="margin:0; font-size:13px; color:gray;"><b>Motivo:</b> ${o.ultima_obs}</p>
+                
+                <div class="actions">
+                    <a href="dashboard.html?corrigir=${o.id}" class="btn btn-corrigir">
+                        <i class="fas fa-tools"></i> IR CORRIGIR
+                    </a>
+                    <button class="btn btn-aprovar" onclick="decisaoGestor(${o.id}, 'aprovar')">APROVAR</button>
+                </div>
+            </div>
+        `).join('');
     }
 
-    function verDetalhes(id) {
-        const o = JSON.parse(localStorage.getItem('ocorrencias')).find(x => x.id === id);
-        const corpo = document.getElementById('corpoDetalhes');
-        let html = "";
-        for (let chave in o) {
-            if (o[chave] && typeof o[chave] !== 'object') {
-                html += `<div class="detail-row"><span style="font-weight:bold; text-transform:uppercase; font-size:11px; color:#7f8c8d;">${chave.replace(/_/g, ' ')}</span><span>${o[chave]}</span></div>`;
-            }
-        }
-        corpo.innerHTML = html;
-        document.getElementById('modalDetalhes').style.display = 'block';
-    }
-
-    function fecharModal() { document.getElementById('modalDetalhes').style.display = 'none'; }
-
-    function finalizar(id, aprovado) {
+    function decisaoGestor(id, acao) {
         let dados = JSON.parse(localStorage.getItem('ocorrencias'));
-        let idx = dados.findIndex(o => o.id === id);
-        const statusAnterior = dados[idx].status_fluxo;
-
-        if (aprovado) {
-            dados[idx].status_fluxo = statusAnterior.includes("Concluir") ? "Concluído" : "Cancelado";
-            alert("Aprovado com sucesso!");
-        } else {
-            const motivo = prompt("Informe ao colaborador o motivo da reprovação:");
-            if (!motivo) return;
-            dados[idx].status_fluxo = "Reprovado";
-            dados[idx].motivo_reprovacao = motivo;
-            alert("Reprovado! O item voltou para o colaborador.");
-        }
-
-        localStorage.setItem('ocorrencias', JSON.stringify(dados));
-        carregar();
-    }
-
-    window.onload = carregar;
-</script>
-</body>
-</html>

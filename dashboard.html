@@ -14,17 +14,15 @@
         .container { max-width: 900px; margin: auto; }
         .header-acao { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
         .btn-voltar { text-decoration: none; color: var(--primary); font-weight: bold; }
-        .btn-novo { 
-            background: var(--success); color: white; text-decoration: none; padding: 15px 25px; 
-            border-radius: 15px; font-weight: bold; display: inline-flex; align-items: center; gap: 10px; margin-bottom: 20px;
-        }
-        .card { 
-            background: white; border-radius: 20px; padding: 20px; margin-bottom: 15px; 
-            box-shadow: 0 8px 20px rgba(0,0,0,0.05); border-left: 8px solid #ddd; cursor: pointer;
-        }
+        
+        /* Banner de Filtro Ativo */
+        #filtroAviso { background: #fff3cd; color: #856404; padding: 15px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #ffeeba; display: flex; justify-content: space-between; align-items: center; font-weight: bold; }
+        
+        .card { background: white; border-radius: 20px; padding: 20px; margin-bottom: 15px; box-shadow: 0 8px 20px rgba(0,0,0,0.05); border-left: 8px solid #ddd; cursor: pointer; }
         .prio-alta { border-left-color: var(--danger); }
         .prio-media { border-left-color: var(--warning); }
         .prio-baixa { border-left-color: var(--success); }
+        
         .status-tag { font-size: 11px; font-weight: bold; text-transform: uppercase; padding: 4px 10px; border-radius: 6px; background: #eee; color: #666; }
         .actions-bar { display: flex; gap: 10px; margin-top: 15px; padding-top: 15px; border-top: 1px solid #f0f0f0; }
         .btn-action { flex: 1; border: none; padding: 10px; border-radius: 8px; cursor: pointer; font-weight: bold; color: white; font-size: 12px; }
@@ -33,13 +31,12 @@
         .btn-cancelar { background: var(--danger); }
         .btn-disabled { background-color: var(--gray) !important; cursor: not-allowed !important; opacity: 0.6; pointer-events: none; }
 
-        /* Modal de Visualização Estilo Ficha */
         .modal { display: none; position: fixed; z-index: 1000; left:0; top:0; width:100%; height:100%; background: rgba(0,0,0,0.8); align-items:center; justify-content:center; padding: 20px; }
-        .modal-box { background: white; padding: 30px; border-radius: 25px; width: 100%; max-width: 600px; max-height: 90vh; overflow-y: auto; box-sizing: border-box; }
+        .modal-box { background: white; padding: 30px; border-radius: 25px; width: 100%; max-width: 600px; max-height: 90vh; overflow-y: auto; }
         .detalhe-item { display: flex; flex-direction: column; padding: 8px 0; border-bottom: 1px solid #f0f0f0; }
-        .detalhe-label { font-size: 10px; font-weight: bold; color: var(--primary); text-transform: uppercase; letter-spacing: 0.5px; }
-        .detalhe-valor { font-size: 14px; color: var(--dark); font-weight: 500; margin-top: 2px; }
-        .foto-container { margin-top: 15px; border-radius: 15px; overflow: hidden; border: 1px solid #ddd; background: #f9f9f9; }
+        .detalhe-label { font-size: 10px; font-weight: bold; color: var(--primary); text-transform: uppercase; }
+        .detalhe-valor { font-size: 14px; color: var(--dark); font-weight: 500; }
+        .foto-container { margin-top: 15px; border-radius: 15px; overflow: hidden; border: 1px solid #ddd; }
         .foto-img { width: 100%; height: auto; display: block; }
         textarea { width: 100%; height: 80px; border-radius: 10px; padding: 10px; margin: 10px 0; box-sizing: border-box; resize: none; border: 1px solid #ddd; }
     </style>
@@ -51,22 +48,24 @@
         <a href="index.html" class="btn-voltar">← Voltar ao Menu</a>
         <h2 style="color: var(--dark); margin:0;">Gestão Operacional</h2>
     </div>
-    <a href="registro.html" class="btn-novo">+ NOVO REGISTRO</a>
+
+    <div id="areaFiltro"></div> <a href="registro.html" class="btn-novo" style="background:var(--success); color:white; text-decoration:none; padding:12px 20px; border-radius:10px; display:inline-block; margin-bottom:20px; font-weight:bold;">+ NOVO REGISTRO</a>
+    
     <div id="listaOcorrencias"></div>
 </div>
 
 <div id="modalView" class="modal" onclick="this.style.display='none'">
     <div class="modal-box" onclick="event.stopPropagation()">
-        <h2 style="border-bottom: 2px solid var(--primary); padding-bottom:10px; margin-top:0; color: var(--dark);">Ficha Técnica</h2>
+        <h2 style="border-bottom: 2px solid var(--primary); padding-bottom:10px; margin-top:0;">Ficha Técnica</h2>
         <div id="conteudoCompleto"></div>
-        <button onclick="document.getElementById('modalView').style.display='none'" class="btn-action btn-encaminhar" style="width:100%; margin-top:20px; padding:15px; font-size:14px;">FECHAR FICHA</button>
+        <button onclick="document.getElementById('modalView').style.display='none'" class="btn-action btn-encaminhar" style="width:100%; margin-top:20px; padding:15px;">FECHAR</button>
     </div>
 </div>
 
 <div id="modalAcao" class="modal">
     <div class="modal-box" style="max-width: 400px;">
-        <h3 id="modalTitulo" style="margin-top:0;">Ação Operacional</h3>
-        <textarea id="obsInput" placeholder="Digite detalhes ou justificativa..."></textarea>
+        <h3 id="modalTitulo">Ação</h3>
+        <textarea id="obsInput" placeholder="Justificativa..."></textarea>
         <button id="btnConfirmar" onclick="processarSolicitacao()" class="btn-action" style="width:100%; padding:15px;">ENVIAR</button>
         <button onclick="document.getElementById('modalAcao').style.display='none'" style="width:100%; background:none; border:none; color:gray; cursor:pointer; margin-top:10px;">Cancelar</button>
     </div>
@@ -79,7 +78,23 @@
 
     function carregar() {
         const lista = document.getElementById('listaOcorrencias');
-        const dados = JSON.parse(localStorage.getItem('ocorrencias') || '[]').reverse();
+        const areaFiltro = document.getElementById('areaFiltro');
+        let dados = JSON.parse(localStorage.getItem('ocorrencias') || '[]').reverse();
+
+        // LÓGICA DE FILTRO URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const idParaCorrigir = urlParams.get('corrigir');
+
+        if (idParaCorrigir) {
+            dados = dados.filter(o => o.id == idParaCorrigir);
+            areaFiltro.innerHTML = `
+                <div id="filtroAviso">
+                    <span>📍 Mostrando apenas registro para correção</span>
+                    <a href="dashboard.html" style="color:#856404; font-size:12px;">Ver todos os registros</a>
+                </div>`;
+        } else {
+            areaFiltro.innerHTML = "";
+        }
 
         if (dados.length === 0) {
             lista.innerHTML = `<p style="text-align:center; color:gray; padding:50px;">Nenhum registro encontrado.</p>`;
@@ -94,13 +109,12 @@
 
             return `
                 <div class="card ${classePrio}" onclick="abrirFicha(${o.id})">
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <div style="display:flex; justify-content:space-between;">
                         <span class="status-tag">${o.status_fluxo || 'Aberto'}</span>
                         <small style="color:#ccc;">#${o.id}</small>
                     </div>
-                    <h3 style="margin:10px 0 5px 0;">${o.descricao || 'Sem Descrição'}</h3>
-                    <p style="margin:0; font-size:13px; color:gray;">${o.setor || 'N/A'} | ${o.local || 'N/A'}</p>
-                    
+                    <h3 style="margin:10px 0 5px 0;">${o.descricao}</h3>
+                    <p style="margin:0; font-size:13px; color:gray;">${o.setor} | ${o.local}</p>
                     <div class="actions-bar" onclick="event.stopPropagation()">
                         <button class="btn-action btn-encaminhar" onclick="abrirModalAcao('Encaminhar', ${o.id})">ENCAMINHAR</button>
                         <button class="btn-action btn-concluir ${travarAcoes ? 'btn-disabled' : ''}" onclick="abrirModalAcao('Concluir', ${o.id})">CONCLUIR</button>
@@ -114,41 +128,10 @@
     function abrirFicha(id) {
         const o = JSON.parse(localStorage.getItem('ocorrencias') || '[]').find(x => x.id === id);
         if (!o) return;
-
-        // Mapeamento completo dos campos da tela de registro
-        const labels = {
-            data: "Data da Ocorrência",
-            hora: "Horário",
-            setor: "Setor Responsável",
-            local: "Local Exato",
-            prioridade: "Nível de Prioridade",
-            descricao: "Descrição da Não Conformidade",
-            data_sugestao: "Data Sugestão de Conclusão", // Nome corrigido conforme pedido
-            status_fluxo: "Status Atual do Fluxo",
-            ultima_obs: "Histórico de Observações",
-            responsavel_login: "Registrado por"
-        };
-
+        const labels = { data: "Data Sugestão", hora: "Hora", setor: "Setor", local: "Local", prioridade: "Prioridade", descricao: "Descrição", status_fluxo: "Status", ultima_obs: "Observação" };
         let html = "";
-        for (let chave in labels) {
-            // Verifica se o dado existe antes de exibir para evitar erros
-            const valor = o[chave] || "Não informado";
-            html += `<div class="detalhe-item">
-                        <span class="detalhe-label">${labels[chave]}</span>
-                        <span class="detalhe-valor">${valor}</span>
-                     </div>`;
-        }
-
-        // Se houver foto, adiciona na ficha técnica com moldura
-        if (o.foto) {
-            html += `<div class="detalhe-item" style="border-bottom:none;">
-                        <span class="detalhe-label">EVIDÊNCIA FOTOGRÁFICA</span>
-                     </div>
-                     <div class="foto-container">
-                        <img src="${o.foto}" class="foto-img" alt="Evidência">
-                     </div>`;
-        }
-
+        for (let k in labels) { html += `<div class="detalhe-item"><span class="detalhe-label">${labels[k]}</span><span class="detalhe-valor">${o[k] || '---'}</span></div>`; }
+        if (o.foto) { html += `<div class="foto-container"><img src="${o.foto}" class="foto-img"></div>`; }
         document.getElementById('conteudoCompleto').innerHTML = html;
         document.getElementById('modalView').style.display = 'flex';
     }
@@ -161,28 +144,17 @@
 
     function processarSolicitacao() {
         const obs = document.getElementById('obsInput').value;
-        if (!obs) return alert("Por favor, preencha o campo de observação.");
-        
+        if (!obs) return alert("Preencha a observação.");
         let dados = JSON.parse(localStorage.getItem('ocorrencias'));
         let idx = dados.findIndex(o => o.id === idAtivo);
-        
-        // Mantém o botão encaminhar sem travar o status final
-        if (acaoAtiva !== 'Encaminhar') {
-            dados[idx].status_fluxo = "Solicitado: " + acaoAtiva;
-        }
-        
+        if (acaoAtiva !== 'Encaminhar') dados[idx].status_fluxo = "Solicitado: " + acaoAtiva;
         dados[idx].ultima_obs = obs;
         localStorage.setItem('ocorrencias', JSON.stringify(dados));
-        
         document.getElementById('modalAcao').style.display = 'none';
-        document.getElementById('obsInput').value = "";
         carregar();
     }
 
-    window.onload = () => { 
-        if(!sessao) window.location.replace('login.html'); 
-        carregar(); 
-    };
+    window.onload = carregar;
 </script>
 </body>
 </html>
