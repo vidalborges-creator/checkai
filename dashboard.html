@@ -15,7 +15,7 @@
         .header-acao { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
         .btn-voltar { text-decoration: none; color: var(--primary); font-weight: bold; }
         
-        /* Cards */
+        /* Cards de Ocorrência */
         .card { 
             background: white; border-radius: 20px; padding: 20px; margin-bottom: 15px; 
             box-shadow: 0 8px 20px rgba(0,0,0,0.05); border-left: 8px solid #ddd; cursor: pointer;
@@ -38,20 +38,15 @@
         .modal { display: none; position: fixed; z-index: 1000; left:0; top:0; width:100%; height:100%; background: rgba(0,0,0,0.8); align-items:center; justify-content:center; padding: 20px; }
         .modal-box { background: white; padding: 30px; border-radius: 25px; width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto; box-sizing: border-box; }
         
-        /* Formulários */
+        /* Estilos de Formulário */
         .form-group { margin-bottom: 15px; text-align: left; }
         .form-group label { display: block; font-size: 11px; font-weight: bold; color: var(--primary); margin-bottom: 5px; text-transform: uppercase; }
         .form-group textarea, .form-group input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; font-family: inherit; }
         
         .flag-box { display: flex; align-items: center; gap: 10px; background: #f8f9fa; padding: 12px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #eee; }
         
-        /* Preview da Foto */
+        /* Imagens */
         #imgPreview { width: 100%; border-radius: 12px; margin-top: 10px; border: 2px solid var(--primary); max-height: 250px; object-fit: cover; }
-
-        /* Ficha Técnica Detalhes */
-        .detalhe-item { display: flex; flex-direction: column; padding: 8px 0; border-bottom: 1px solid #f0f0f0; }
-        .detalhe-label { font-size: 10px; font-weight: bold; color: var(--primary); text-transform: uppercase; }
-        .detalhe-valor { font-size: 14px; color: var(--dark); font-weight: 500; }
         .foto-ficha { width: 100%; border-radius: 15px; margin-top: 10px; border: 1px solid #ddd; }
     </style>
 </head>
@@ -127,8 +122,8 @@
         if(!o) return;
         const labels = { data: "Data Registro", setor: "Setor", local: "Local", prioridade: "Prioridade", descricao: "Descrição", status_fluxo: "Status Atual" };
         let html = "";
-        for(let k in labels) html += `<div class="detalhe-item"><span class="detalhe-label">${labels[k]}</span><span class="detalhe-valor">${o[k] || '---'}</span></div>`;
-        if(o.foto) html += `<div class="detalhe-item"><span class="detalhe-label">Evidência Inicial</span><img src="${o.foto}" class="foto-ficha"></div>`;
+        for(let k in labels) html += `<div style="display: flex; flex-direction: column; padding: 8px 0; border-bottom: 1px solid #f0f0f0;"><span style="font-size: 10px; font-weight: bold; color: var(--primary); text-transform: uppercase;">${labels[k]}</span><span style="font-size: 14px; color: var(--dark); font-weight: 500;">${o[k] || '---'}</span></div>`;
+        if(o.foto) html += `<div style="margin-top:10px;"><span style="font-size: 10px; font-weight: bold; color: var(--primary);">EVIDÊNCIA INICIAL</span><img src="${o.foto}" class="foto-ficha"></div>`;
         document.getElementById('conteudoFicha').innerHTML = html;
         document.getElementById('modalView').style.display = 'flex';
     }
@@ -188,4 +183,63 @@
 
     function previewFoto(input) {
         const container = document.getElementById('containerPreview');
-        const
+        const imagem = document.getElementById('imgPreview');
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                imagem.src = e.target.result;
+                container.style.display = 'block';
+            }
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    async function validarEProcessar() {
+        let dados = JSON.parse(localStorage.getItem('ocorrencias'));
+        let idx = dados.findIndex(o => o.id === idAtivo);
+        
+        if (acaoAtiva === 'Concluir') {
+            const obs = document.getElementById('obsInput').value;
+            const fotoNA = document.getElementById('fotoNA').checked;
+            const inputFoto = document.getElementById('fotoMelhoria');
+
+            if (!obs) return alert("A justificativa é obrigatória.");
+            if (!fotoNA && inputFoto.files.length === 0) return alert("A foto é obrigatória ou marque 'Não aplicável'.");
+
+            dados[idx].status_fluxo = "Solicitado: Concluir";
+            dados[idx].ultima_obs = obs;
+            if (!fotoNA) dados[idx].foto_conclusao = await toBase64(inputFoto.files[0]);
+
+        } else if (acaoAtiva === 'Encaminhar') {
+            const email = document.getElementById('emailDestino').value;
+            const comp = document.getElementById('dadosComp').value;
+
+            if (!email || !comp) return alert("E-mail e Dados Complementares são obrigatórios.");
+            
+            dados[idx].status_fluxo = "Encaminhado";
+            dados[idx].ultima_obs = `E-mail: ${email} | Dados: ${comp}`;
+            alert("Registro encaminhado com sucesso!");
+
+        } else {
+            const obs = document.getElementById('obsInput').value;
+            if (!obs) return alert("A justificativa é obrigatória.");
+            dados[idx].status_fluxo = "Solicitado: Cancelar";
+            dados[idx].ultima_obs = obs;
+        }
+
+        localStorage.setItem('ocorrencias', JSON.stringify(dados));
+        document.getElementById('modalAcao').style.display = 'none';
+        carregar();
+    }
+
+    const toBase64 = file => new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = error => reject(error);
+    });
+
+    window.onload = carregar;
+</script>
+</body>
+</html>
