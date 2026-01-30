@@ -38,18 +38,21 @@
         .modal { display: none; position: fixed; z-index: 1000; left:0; top:0; width:100%; height:100%; background: rgba(0,0,0,0.8); align-items:center; justify-content:center; padding: 20px; }
         .modal-box { background: white; padding: 30px; border-radius: 25px; width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto; box-sizing: border-box; }
         
-        /* Formulários dentro do Modal */
+        /* Formulários */
         .form-group { margin-bottom: 15px; text-align: left; }
         .form-group label { display: block; font-size: 11px; font-weight: bold; color: var(--primary); margin-bottom: 5px; text-transform: uppercase; }
         .form-group textarea, .form-group input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; font-family: inherit; }
         
         .flag-box { display: flex; align-items: center; gap: 10px; background: #f8f9fa; padding: 12px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #eee; }
         
-        /* Detalhes da Ficha */
+        /* Preview da Foto */
+        #imgPreview { width: 100%; border-radius: 12px; margin-top: 10px; border: 2px solid var(--primary); max-height: 250px; object-fit: cover; }
+
+        /* Ficha Técnica Detalhes */
         .detalhe-item { display: flex; flex-direction: column; padding: 8px 0; border-bottom: 1px solid #f0f0f0; }
         .detalhe-label { font-size: 10px; font-weight: bold; color: var(--primary); text-transform: uppercase; }
         .detalhe-valor { font-size: 14px; color: var(--dark); font-weight: 500; }
-        .foto-img { width: 100%; border-radius: 15px; margin-top: 10px; border: 1px solid #ddd; }
+        .foto-ficha { width: 100%; border-radius: 15px; margin-top: 10px; border: 1px solid #ddd; }
     </style>
 </head>
 <body>
@@ -75,8 +78,7 @@
     <div class="modal-box">
         <h3 id="modalTitulo" style="margin-top:0; color: var(--dark);">Ação</h3>
         
-        <div id="corpoAcao">
-            </div>
+        <div id="corpoAcao"></div>
 
         <button id="btnConfirmar" onclick="validarEProcessar()" class="btn-action" style="width:100%; padding:15px; margin-top:10px; background:var(--success);">CONFIRMAR</button>
         <button onclick="document.getElementById('modalAcao').style.display='none'" style="width:100%; background:none; border:none; color:gray; cursor:pointer; margin-top:10px;">Cancelar</button>
@@ -123,10 +125,10 @@
     function abrirFicha(id) {
         const o = JSON.parse(localStorage.getItem('ocorrencias') || '[]').find(x => x.id === id);
         if(!o) return;
-        const labels = { data: "Data Sugestão", setor: "Setor", local: "Local", prioridade: "Prioridade", descricao: "Descrição", status_fluxo: "Status" };
+        const labels = { data: "Data Registro", setor: "Setor", local: "Local", prioridade: "Prioridade", descricao: "Descrição", status_fluxo: "Status Atual" };
         let html = "";
         for(let k in labels) html += `<div class="detalhe-item"><span class="detalhe-label">${labels[k]}</span><span class="detalhe-valor">${o[k] || '---'}</span></div>`;
-        if(o.foto) html += `<div class="detalhe-item"><span class="detalhe-label">Evidência</span><img src="${o.foto}" class="foto-img"></div>`;
+        if(o.foto) html += `<div class="detalhe-item"><span class="detalhe-label">Evidência Inicial</span><img src="${o.foto}" class="foto-ficha"></div>`;
         document.getElementById('conteudoFicha').innerHTML = html;
         document.getElementById('modalView').style.display = 'flex';
     }
@@ -144,12 +146,18 @@
                     <textarea id="obsInput" placeholder="Descreva o que foi realizado..."></textarea>
                 </div>
                 <div class="flag-box">
-                    <input type="checkbox" id="fotoNA" onchange="document.getElementById('grupoInputFoto').style.display = this.checked ? 'none' : 'block'">
-                    <label for="fotoNA" style="font-size:12px; cursor:pointer;">Foto não aplicável nesta conclusão</label>
+                    <input type="checkbox" id="fotoNA" onchange="toggleCamposFoto(this.checked)">
+                    <label for="fotoNA" style="font-size:12px; cursor:pointer; font-weight:bold;">Foto não aplicável nesta conclusão</label>
                 </div>
-                <div class="form-group" id="grupoInputFoto">
-                    <label>Foto da Ação de Melhoria (Obrigatório)</label>
-                    <input type="file" id="fotoMelhoria" accept="image/*" capture="camera">
+                <div id="grupoInputFoto">
+                    <div class="form-group">
+                        <label>Foto da Ação de Melhoria (Obrigatório)</label>
+                        <input type="file" id="fotoMelhoria" accept="image/*" capture="camera" onchange="previewFoto(this)">
+                    </div>
+                    <div id="containerPreview" style="display:none; text-align:center; margin-bottom:15px;">
+                        <span style="font-size:10px; font-weight:bold; color:var(--primary);">PREVIEW DA FOTO:</span>
+                        <img id="imgPreview" src="">
+                    </div>
                 </div>
             `;
         } else if(tipo === 'Encaminhar') {
@@ -174,52 +182,10 @@
         document.getElementById('modalAcao').style.display = 'flex';
     }
 
-    async function validarEProcessar() {
-        let dados = JSON.parse(localStorage.getItem('ocorrencias'));
-        let idx = dados.findIndex(o => o.id === idAtivo);
-        
-        if (acaoAtiva === 'Concluir') {
-            const obs = document.getElementById('obsInput').value;
-            const fotoNA = document.getElementById('fotoNA').checked;
-            const inputFoto = document.getElementById('fotoMelhoria');
-
-            if (!obs) return alert("A justificativa é obrigatória.");
-            if (!fotoNA && inputFoto.files.length === 0) return alert("A foto é obrigatória ou marque 'Não aplicável'.");
-
-            dados[idx].status_fluxo = "Solicitado: Concluir";
-            dados[idx].ultima_obs = obs;
-            if (!fotoNA) dados[idx].foto_conclusao = await toBase64(inputFoto.files[0]);
-
-        } else if (acaoAtiva === 'Encaminhar') {
-            const email = document.getElementById('emailDestino').value;
-            const comp = document.getElementById('dadosComp').value;
-
-            if (!email || !comp) return alert("E-mail e Dados Complementares são obrigatórios.");
-            
-            dados[idx].status_fluxo = "Encaminhado";
-            dados[idx].ultima_obs = `E-mail: ${email} | Dados: ${comp}`;
-            alert("Registro encaminhado com sucesso!");
-
-        } else {
-            const obs = document.getElementById('obsInput').value;
-            if (!obs) return alert("A justificativa é obrigatória.");
-            dados[idx].status_fluxo = "Solicitado: Cancelar";
-            dados[idx].ultima_obs = obs;
-        }
-
-        localStorage.setItem('ocorrencias', JSON.stringify(dados));
-        document.getElementById('modalAcao').style.display = 'none';
-        carregar();
+    function toggleCamposFoto(isNA) {
+        document.getElementById('grupoInputFoto').style.display = isNA ? 'none' : 'block';
     }
 
-    const toBase64 = file => new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = () => resolve(reader.result);
-        reader.onerror = error => reject(error);
-    });
-
-    window.onload = carregar;
-</script>
-</body>
-</html>
+    function previewFoto(input) {
+        const container = document.getElementById('containerPreview');
+        const
