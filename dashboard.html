@@ -15,20 +15,17 @@
         .container { max-width: 900px; margin: auto; }
         
         .header-acao { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
-        .btn-voltar { text-decoration: none; color: var(--primary); font-weight: bold; display: flex; align-items: center; gap: 5px; }
+        .btn-voltar { text-decoration: none; color: var(--primary); font-weight: bold; }
         
         .btn-novo { 
             background: var(--success); color: white; text-decoration: none; padding: 15px 25px; 
-            border-radius: 15px; font-weight: bold; display: inline-flex; align-items: center; gap: 10px; 
-            box-shadow: 0 4px 15px rgba(46, 204, 113, 0.3); transition: 0.3s; margin-bottom: 20px;
+            border-radius: 15px; font-weight: bold; display: inline-flex; align-items: center; gap: 10px; margin-bottom: 20px;
         }
 
         .card { 
             background: white; border-radius: 20px; padding: 20px; margin-bottom: 15px; 
-            box-shadow: 0 8px 20px rgba(0,0,0,0.05); border-left: 8px solid #ddd;
-            transition: 0.3s; cursor: pointer; position: relative;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.05); border-left: 8px solid #ddd; cursor: pointer;
         }
-        .card:hover { transform: translateY(-3px); box-shadow: 0 12px 25px rgba(0,0,0,0.1); }
 
         .prio-alta { border-left-color: var(--danger); }
         .prio-media { border-left-color: var(--warning); }
@@ -43,7 +40,7 @@
         
         .btn-action { 
             flex: 1; border: none; padding: 10px; border-radius: 8px; cursor: pointer; 
-            font-weight: bold; color: white; font-size: 12px; transition: 0.2s;
+            font-weight: bold; color: white; font-size: 12px;
         }
         .btn-encaminhar { background: var(--primary); }
         .btn-concluir { background: var(--success); }
@@ -56,5 +53,35 @@
             pointer-events: none;
         }
 
-        .modal { display: none; position: fixed; z-index: 1000; left:0; top:0; width:100%; height:100%; background: rgba(0,0,0,0.7); align-items:center; justify-content:center; padding: 20px; box-sizing: border-box;}
-        .modal-box { background: white;
+        .modal { display: none; position: fixed; z-index: 1000; left:0; top:0; width:100%; height:100%; background: rgba(0,0,0,0.7); align-items:center; justify-content:center; padding: 20px; }
+        .modal-box { background: white; padding: 30px; border-radius: 25px; width: 100%; max-width: 500px; }
+        
+        .detail-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; }
+        textarea { width: 100%; height: 80px; border-radius: 10px; padding: 10px; margin: 10px 0; box-sizing: border-box; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header-acao">
+        <a href="index.html" class="btn-voltar">← Voltar ao Menu</a>
+        <h2 style="color: var(--dark);">Gestão Operacional</h2>
+    </div>
+
+    <a href="registro.html" class="btn-novo">+ NOVO REGISTRO</a>
+    <div id="listaOcorrencias"></div>
+</div>
+
+<div id="modalView" class="modal" onclick="this.style.display='none'">
+    <div class="modal-box" onclick="event.stopPropagation()">
+        <h2 style="border-bottom: 2px solid var(--primary);">Ficha Técnica</h2>
+        <div id="conteudoDetalhes"></div>
+        <button onclick="document.getElementById('modalView').style.display='none'" class="btn-action btn-encaminhar" style="width:100%; margin-top:15px;">FECHAR</button>
+    </div>
+</div>
+
+<div id="modalAcao" class="modal">
+    <div class="modal-box">
+        <h3 id="modalTitulo">Ação</h3>
+        <textarea id="obsInput" placeholder="Justificativa..."></textarea>
+        <button id="btnConfirmar" onclick="processarSolicitacao()" class="btn
