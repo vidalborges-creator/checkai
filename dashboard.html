@@ -23,7 +23,6 @@
             box-shadow: 0 4px 15px rgba(46, 204, 113, 0.3); transition: 0.3s; margin-bottom: 20px;
         }
 
-        /* Estilo dos Cards */
         .card { 
             background: white; border-radius: 20px; padding: 20px; margin-bottom: 15px; 
             box-shadow: 0 8px 20px rgba(0,0,0,0.05); border-left: 8px solid #ddd;
@@ -50,7 +49,6 @@
         .btn-concluir { background: var(--success); }
         .btn-cancelar { background: var(--danger); }
 
-        /* Classe para Botão Inativo */
         .btn-disabled {
             background-color: var(--gray) !important;
             cursor: not-allowed !important;
@@ -58,144 +56,5 @@
             pointer-events: none;
         }
 
-        /* Modais */
         .modal { display: none; position: fixed; z-index: 1000; left:0; top:0; width:100%; height:100%; background: rgba(0,0,0,0.7); align-items:center; justify-content:center; padding: 20px; box-sizing: border-box;}
-        .modal-box { background: white; padding: 30px; border-radius: 25px; width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto; }
-        
-        .detail-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #eee; }
-        .detail-label { font-weight: bold; color: #7f8c8d; text-transform: uppercase; font-size: 11px; }
-        .detail-value { color: #2c3e50; font-weight: 600; text-align: right; max-width: 60%; }
-        
-        textarea { width: 100%; height: 100px; border-radius: 10px; padding: 10px; border: 1px solid #ddd; margin: 10px 0; resize: none; font-family: inherit; }
-    </style>
-</head>
-<body>
-
-<div class="container">
-    <div class="header-acao">
-        <a href="index.html" class="btn-voltar"><i class="fas fa-chevron-left"></i> Voltar ao Menu</a>
-        <h2 style="margin:0; color: var(--dark);">Gestão Operacional</h2>
-    </div>
-
-    <a href="registro.html" class="btn-novo"><i class="fas fa-plus-circle"></i> NOVO REGISTRO</a>
-
-    <div id="listaOcorrencias"></div>
-</div>
-
-<div id="modalView" class="modal" onclick="fecharModalView(event)">
-    <div class="modal-box" onclick="event.stopPropagation()">
-        <h2 style="color:var(--dark); border-bottom: 3px solid var(--primary); padding-bottom:10px; margin-top:0;">Ficha da Ocorrência</h2>
-        <div id="conteudoDetalhes"></div>
-        <button onclick="document.getElementById('modalView').style.display='none'" class="btn-action btn-encaminhar" style="width:100%; margin-top:20px; padding:15px;">FECHAR</button>
-    </div>
-</div>
-
-<div id="modalAcao" class="modal">
-    <div class="modal-box">
-        <h3 id="modalTitulo" style="margin-top:0;">Solicitar Ação</h3>
-        <p style="color:gray; font-size: 14px;">Informe o motivo ou observação para o gestor:</p>
-        <textarea id="obsInput" placeholder="Digite aqui..."></textarea>
-        <button id="btnConfirmar" onclick="processarSolicitacao()" class="btn-action" style="width:100%; padding:15px;">ENVIAR SOLICITAÇÃO</button>
-        <button onclick="document.getElementById('modalAcao').style.display='none'" style="width:100%; background:none; border:none; color:gray; cursor:pointer; margin-top:10px;">Cancelar</button>
-    </div>
-</div>
-
-<script>
-    const sessao = JSON.parse(localStorage.getItem('usuarioLogado'));
-    let idAtivo = null;
-    let acaoAtiva = "";
-
-    function carregar() {
-        const lista = document.getElementById('listaOcorrencias');
-        // REVERSE() para mostrar os mais novos primeiro
-        const dados = JSON.parse(localStorage.getItem('ocorrencias') || '[]').reverse();
-
-        if (dados.length === 0) {
-            lista.innerHTML = `<div style="text-align:center; padding:50px; color:gray;">Nenhum registro encontrado.</div>`;
-            return;
-        }
-
-        lista.innerHTML = dados.map(o => {
-            const classePrio = o.prioridade === 'Alta' ? 'prio-alta' : (o.prioridade === 'Média' ? 'prio-media' : 'prio-baixa');
-            
-            // Regra de bloqueio: botões ficam cinzas se concluído, cancelado ou aguardando aprovação
-            const finalizado = (o.status_fluxo === "Concluído" || o.status_fluxo === "Cancelado");
-            const pendente = o.status_fluxo && o.status_fluxo.startsWith("Solicitado");
-            const desativar = finalizado || pendente;
-
-            return `
-                <div class="card ${classePrio}" onclick="abrirDetalhes(${o.id})">
-                    <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-                        <div>
-                            <span class="status-tag" style="${finalizado ? 'background:var(--dark); color:white;' : ''}">
-                                ${o.status_fluxo || 'Aberto'}
-                            </span>
-                            <h3 style="margin:8px 0 2px 0; text-transform:uppercase;">${o.descricao}</h3>
-                            <p style="margin:0; color:gray; font-size:14px;">${o.setor} | ${o.local}</p>
-                        </div>
-                        <small style="color:#ccc;">#${o.id}</small>
-                    </div>
-
-                    <div class="actions-bar" onclick="event.stopPropagation()">
-                        <button class="btn-action btn-encaminhar ${desativar ? 'btn-disabled' : ''}" onclick="abrirModalAcao('Encaminhar', ${o.id})">ENCAMINHAR</button>
-                        <button class="btn-action btn-concluir ${desativar ? 'btn-disabled' : ''}" onclick="abrirModalAcao('Concluir', ${o.id})">CONCLUIR</button>
-                        <button class="btn-action btn-cancelar ${desativar ? 'btn-disabled' : ''}" onclick="abrirModalAcao('Cancelar', ${o.id})">CANCELAR</button>
-                    </div>
-                </div>
-            `;
-        }).join('');
-    }
-
-    function abrirDetalhes(id) {
-        const o = JSON.parse(localStorage.getItem('ocorrencias')).find(x => x.id === id);
-        const container = document.getElementById('conteudoDetalhes');
-        let html = "";
-        
-        const ignorar = ['id', 'responsavel_login'];
-        for (let chave in o) {
-            if (!ignorar.includes(chave) && o[chave]) {
-                html += `<div class="detail-row">
-                            <span class="detail-label">${chave.replace(/_/g, ' ')}</span>
-                            <span class="detail-value">${o[chave]}</span>
-                         </div>`;
-            }
-        }
-        container.innerHTML = html;
-        document.getElementById('modalView').style.display = 'flex';
-    }
-
-    function abrirModalAcao(tipo, id) {
-        idAtivo = id; acaoAtiva = tipo;
-        document.getElementById('modalTitulo').innerText = "Solicitar " + tipo;
-        document.getElementById('btnConfirmar').style.background = 
-            tipo === 'Concluir' ? 'var(--success)' : (tipo === 'Cancelar' ? 'var(--danger)' : 'var(--primary)');
-        document.getElementById('modalAcao').style.display = 'flex';
-    }
-
-    function processarSolicitacao() {
-        const obs = document.getElementById('obsInput').value;
-        if (!obs) return alert("Por favor, preencha a justificativa.");
-
-        let dados = JSON.parse(localStorage.getItem('ocorrencias'));
-        let idx = dados.findIndex(o => o.id === idAtivo);
-
-        dados[idx].status_fluxo = "Solicitado: " + acaoAtiva;
-        dados[idx].ultima_obs = obs;
-        dados[idx].responsavel_login = sessao.user;
-
-        localStorage.setItem('ocorrencias', JSON.stringify(dados));
-        alert("Solicitação enviada para aprovação do Gestor!");
-        document.getElementById('modalAcao').style.display = 'none';
-        document.getElementById('obsInput').value = "";
-        carregar();
-    }
-
-    function fecharModalView(e) { if(e.target.id === 'modalView') e.target.style.display = 'none'; }
-
-    window.onload = function() {
-        if (!sessao) window.location.replace('login.html');
-        carregar();
-    };
-</script>
-</body>
-</html>
+        .modal-box { background: white;
