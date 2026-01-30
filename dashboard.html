@@ -15,6 +15,15 @@
         .header-acao { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
         .btn-voltar { text-decoration: none; color: var(--primary); font-weight: bold; }
         
+        /* ESTILO DO BOTÃO NOVO REGISTRO */
+        .area-novo-registro { text-align: center; margin-bottom: 30px; }
+        .btn-novo { 
+            display: inline-block; background: #27ae60; color: white !important; text-decoration: none; 
+            padding: 15px 30px; border-radius: 12px; font-weight: bold; font-size: 16px;
+            box-shadow: 0 4px 15px rgba(39, 174, 96, 0.3); transition: 0.3s; border: none;
+        }
+        .btn-novo:hover { transform: scale(1.02); background: #219150; }
+
         /* Estilo dos Cards */
         .card { 
             background: white; border-radius: 20px; padding: 20px; margin-bottom: 15px; 
@@ -63,6 +72,10 @@
         <a href="index.html" class="btn-voltar">← Voltar ao Menu</a>
         <h2 style="color: var(--dark); margin:0;">Gestão Operacional</h2>
     </div>
+
+    <div class="area-novo-registro">
+        <a href="cadastro.html" class="btn-novo">+ NOVO REGISTRO</a>
+    </div>
     
     <div id="listaOcorrencias"></div>
 </div>
@@ -78,9 +91,7 @@
 <div id="modalAcao" class="modal">
     <div class="modal-box">
         <h3 id="modalTitulo" style="margin-top:0; color: var(--dark);">Ação</h3>
-        
         <div id="corpoAcao"></div>
-
         <button id="btnConfirmar" onclick="validarEProcessar()" class="btn-action" style="width:100%; padding:15px; margin-top:10px; background:var(--success);">CONFIRMAR</button>
         <button onclick="document.getElementById('modalAcao').style.display='none'" style="width:100%; background:none; border:none; color:gray; cursor:pointer; margin-top:10px;">Cancelar</button>
     </div>
@@ -123,6 +134,7 @@
         }).join('');
     }
 
+    // (As demais funções JavaScript abrirFicha, abrirModalAcao, validarEProcessar, etc. continuam aqui...)
     function abrirFicha(id) {
         const o = JSON.parse(localStorage.getItem('ocorrencias') || '[]').find(x => x.id === id);
         if(!o) return;
@@ -241,7 +253,6 @@
             dados[idx].ultima_obs = obs;
         }
 
-        // SALVAMENTO FINAL
         try {
             localStorage.setItem('ocorrencias', JSON.stringify(dados));
             document.getElementById('modalAcao').style.display = 'none';
