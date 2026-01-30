@@ -15,11 +15,13 @@
         .header-acao { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
         .btn-voltar { text-decoration: none; color: var(--primary); font-weight: bold; }
         
-        /* Cards de Ocorrência */
+        /* Estilo dos Cards */
         .card { 
             background: white; border-radius: 20px; padding: 20px; margin-bottom: 15px; 
             box-shadow: 0 8px 20px rgba(0,0,0,0.05); border-left: 8px solid #ddd; cursor: pointer;
+            transition: 0.3s;
         }
+        .card:hover { transform: translateY(-2px); box-shadow: 0 12px 25px rgba(0,0,0,0.1); }
         .prio-Alta { border-left-color: var(--danger); }
         .prio-Média { border-left-color: var(--warning); }
         .prio-Baixa { border-left-color: var(--success); }
@@ -28,25 +30,29 @@
         
         /* Barra de Ações */
         .actions-bar { display: flex; gap: 10px; margin-top: 15px; padding-top: 15px; border-top: 1px solid #f0f0f0; }
-        .btn-action { flex: 1; border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: bold; color: white; font-size: 12px; }
+        .btn-action { flex: 1; border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: bold; color: white; font-size: 12px; transition: 0.2s; }
         .btn-encaminhar { background: var(--primary); }
         .btn-concluir { background: var(--success); }
         .btn-cancelar { background: var(--danger); }
         .btn-disabled { background-color: var(--gray) !important; cursor: not-allowed !important; opacity: 0.6; pointer-events: none; }
+        .btn-action:active { transform: scale(0.95); }
 
         /* Modais */
         .modal { display: none; position: fixed; z-index: 1000; left:0; top:0; width:100%; height:100%; background: rgba(0,0,0,0.8); align-items:center; justify-content:center; padding: 20px; }
         .modal-box { background: white; padding: 30px; border-radius: 25px; width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto; box-sizing: border-box; }
         
-        /* Estilos de Formulário */
+        /* Formulários */
         .form-group { margin-bottom: 15px; text-align: left; }
         .form-group label { display: block; font-size: 11px; font-weight: bold; color: var(--primary); margin-bottom: 5px; text-transform: uppercase; }
-        .form-group textarea, .form-group input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; font-family: inherit; }
+        .form-group textarea, .form-group input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; font-family: inherit; font-size: 14px; }
         
         .flag-box { display: flex; align-items: center; gap: 10px; background: #f8f9fa; padding: 12px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #eee; }
         
-        /* Imagens */
+        /* Preview e Imagens */
         #imgPreview { width: 100%; border-radius: 12px; margin-top: 10px; border: 2px solid var(--primary); max-height: 250px; object-fit: cover; }
+        .detalhe-item { display: flex; flex-direction: column; padding: 8px 0; border-bottom: 1px solid #f0f0f0; }
+        .detalhe-label { font-size: 10px; font-weight: bold; color: var(--primary); text-transform: uppercase; }
+        .detalhe-valor { font-size: 14px; color: var(--dark); font-weight: 500; }
         .foto-ficha { width: 100%; border-radius: 15px; margin-top: 10px; border: 1px solid #ddd; }
     </style>
 </head>
@@ -122,8 +128,8 @@
         if(!o) return;
         const labels = { data: "Data Registro", setor: "Setor", local: "Local", prioridade: "Prioridade", descricao: "Descrição", status_fluxo: "Status Atual" };
         let html = "";
-        for(let k in labels) html += `<div style="display: flex; flex-direction: column; padding: 8px 0; border-bottom: 1px solid #f0f0f0;"><span style="font-size: 10px; font-weight: bold; color: var(--primary); text-transform: uppercase;">${labels[k]}</span><span style="font-size: 14px; color: var(--dark); font-weight: 500;">${o[k] || '---'}</span></div>`;
-        if(o.foto) html += `<div style="margin-top:10px;"><span style="font-size: 10px; font-weight: bold; color: var(--primary);">EVIDÊNCIA INICIAL</span><img src="${o.foto}" class="foto-ficha"></div>`;
+        for(let k in labels) html += `<div class="detalhe-item"><span class="detalhe-label">${labels[k]}</span><span class="detalhe-valor">${o[k] || '---'}</span></div>`;
+        if(o.foto) html += `<div class="detalhe-item"><span class="detalhe-label">Evidência Inicial</span><img src="${o.foto}" class="foto-ficha"></div>`;
         document.getElementById('conteudoFicha').innerHTML = html;
         document.getElementById('modalView').style.display = 'flex';
     }
@@ -150,7 +156,7 @@
                         <input type="file" id="fotoMelhoria" accept="image/*" capture="camera" onchange="previewFoto(this)">
                     </div>
                     <div id="containerPreview" style="display:none; text-align:center; margin-bottom:15px;">
-                        <span style="font-size:10px; font-weight:bold; color:var(--primary);">PREVIEW DA FOTO:</span>
+                        <span style="font-size:10px; font-weight:bold; color:var(--primary);">PREVIEW DA FOTO SELECIONADA:</span>
                         <img id="imgPreview" src="">
                     </div>
                 </div>
@@ -170,7 +176,7 @@
             corpo.innerHTML = `
                 <div class="form-group">
                     <label>Motivo do Cancelamento (Obrigatório)</label>
-                    <textarea id="obsInput" placeholder="Justificativa..."></textarea>
+                    <textarea id="obsInput" placeholder="Justificativa do cancelamento..."></textarea>
                 </div>
             `;
         }
@@ -178,7 +184,8 @@
     }
 
     function toggleCamposFoto(isNA) {
-        document.getElementById('grupoInputFoto').style.display = isNA ? 'none' : 'block';
+        const campo = document.getElementById('grupoInputFoto');
+        if(campo) campo.style.display = isNA ? 'none' : 'block';
     }
 
     function previewFoto(input) {
@@ -195,41 +202,54 @@
     }
 
     async function validarEProcessar() {
-        let dados = JSON.parse(localStorage.getItem('ocorrencias'));
+        let dados = JSON.parse(localStorage.getItem('ocorrencias') || '[]');
         let idx = dados.findIndex(o => o.id === idAtivo);
-        
+        if (idx === -1) return;
+
         if (acaoAtiva === 'Concluir') {
-            const obs = document.getElementById('obsInput').value;
+            const obs = document.getElementById('obsInput').value.trim();
             const fotoNA = document.getElementById('fotoNA').checked;
             const inputFoto = document.getElementById('fotoMelhoria');
 
-            if (!obs) return alert("A justificativa é obrigatória.");
-            if (!fotoNA && inputFoto.files.length === 0) return alert("A foto é obrigatória ou marque 'Não aplicável'.");
+            if (!obs) { alert("A justificativa é obrigatória."); return; }
+            
+            if (!fotoNA && (!inputFoto || inputFoto.files.length === 0)) {
+                alert("A foto da melhoria é obrigatória ou marque 'Não aplicável'.");
+                return;
+            }
 
             dados[idx].status_fluxo = "Solicitado: Concluir";
             dados[idx].ultima_obs = obs;
-            if (!fotoNA) dados[idx].foto_conclusao = await toBase64(inputFoto.files[0]);
+
+            if (!fotoNA && inputFoto.files[0]) {
+                dados[idx].foto_conclusao = await toBase64(inputFoto.files[0]);
+            }
 
         } else if (acaoAtiva === 'Encaminhar') {
-            const email = document.getElementById('emailDestino').value;
-            const comp = document.getElementById('dadosComp').value;
+            const email = document.getElementById('emailDestino').value.trim();
+            const comp = document.getElementById('dadosComp').value.trim();
 
-            if (!email || !comp) return alert("E-mail e Dados Complementares são obrigatórios.");
+            if (!email || !comp) { alert("E-mail e Dados Complementares são obrigatórios."); return; }
             
             dados[idx].status_fluxo = "Encaminhado";
-            dados[idx].ultima_obs = `E-mail: ${email} | Dados: ${comp}`;
-            alert("Registro encaminhado com sucesso!");
+            dados[idx].ultima_obs = `Encaminhado para: ${email} | Obs: ${comp}`;
 
-        } else {
-            const obs = document.getElementById('obsInput').value;
-            if (!obs) return alert("A justificativa é obrigatória.");
+        } else if (acaoAtiva === 'Cancelar') {
+            const obs = document.getElementById('obsInput').value.trim();
+            if (!obs) { alert("O motivo do cancelamento é obrigatório."); return; }
             dados[idx].status_fluxo = "Solicitado: Cancelar";
             dados[idx].ultima_obs = obs;
         }
 
-        localStorage.setItem('ocorrencias', JSON.stringify(dados));
-        document.getElementById('modalAcao').style.display = 'none';
-        carregar();
+        // SALVAMENTO FINAL
+        try {
+            localStorage.setItem('ocorrencias', JSON.stringify(dados));
+            document.getElementById('modalAcao').style.display = 'none';
+            alert("Ação registrada com sucesso!");
+            carregar();
+        } catch (e) {
+            alert("Erro ao salvar: o arquivo de imagem pode ser muito grande para o navegador.");
+        }
     }
 
     const toBase64 = file => new Promise((resolve, reject) => {
