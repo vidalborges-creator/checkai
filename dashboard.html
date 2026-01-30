@@ -33,13 +33,13 @@
         .btn-cancelar { background: var(--danger); }
         .btn-disabled { background-color: var(--gray) !important; cursor: not-allowed !important; opacity: 0.6; pointer-events: none; }
 
-        /* Modal de Visualização */
+        /* Modal de Visualização Estilo Ficha */
         .modal { display: none; position: fixed; z-index: 1000; left:0; top:0; width:100%; height:100%; background: rgba(0,0,0,0.8); align-items:center; justify-content:center; padding: 20px; }
         .modal-box { background: white; padding: 30px; border-radius: 25px; width: 100%; max-width: 600px; max-height: 90vh; overflow-y: auto; box-sizing: border-box; }
-        .detalhe-item { display: flex; flex-direction: column; padding: 10px 0; border-bottom: 1px solid #eee; }
-        .detalhe-label { font-size: 10px; font-weight: bold; color: var(--primary); text-transform: uppercase; }
-        .detalhe-valor { font-size: 15px; color: var(--dark); font-weight: 500; margin-top: 2px; }
-        .foto-container { margin-top: 15px; border-radius: 15px; overflow: hidden; border: 1px solid #ddd; }
+        .detalhe-item { display: flex; flex-direction: column; padding: 8px 0; border-bottom: 1px solid #f0f0f0; }
+        .detalhe-label { font-size: 10px; font-weight: bold; color: var(--primary); text-transform: uppercase; letter-spacing: 0.5px; }
+        .detalhe-valor { font-size: 14px; color: var(--dark); font-weight: 500; margin-top: 2px; }
+        .foto-container { margin-top: 15px; border-radius: 15px; overflow: hidden; border: 1px solid #ddd; background: #f9f9f9; }
         .foto-img { width: 100%; height: auto; display: block; }
         textarea { width: 100%; height: 80px; border-radius: 10px; padding: 10px; margin: 10px 0; box-sizing: border-box; resize: none; border: 1px solid #ddd; }
     </style>
@@ -57,16 +57,16 @@
 
 <div id="modalView" class="modal" onclick="this.style.display='none'">
     <div class="modal-box" onclick="event.stopPropagation()">
-        <h2 style="border-bottom: 2px solid var(--primary); padding-bottom:10px; margin-top:0;">Ficha Técnica</h2>
+        <h2 style="border-bottom: 2px solid var(--primary); padding-bottom:10px; margin-top:0; color: var(--dark);">Ficha Técnica</h2>
         <div id="conteudoCompleto"></div>
-        <button onclick="document.getElementById('modalView').style.display='none'" class="btn-action btn-encaminhar" style="width:100%; margin-top:20px; padding:15px;">FECHAR</button>
+        <button onclick="document.getElementById('modalView').style.display='none'" class="btn-action btn-encaminhar" style="width:100%; margin-top:20px; padding:15px; font-size:14px;">FECHAR FICHA</button>
     </div>
 </div>
 
 <div id="modalAcao" class="modal">
     <div class="modal-box" style="max-width: 400px;">
-        <h3 id="modalTitulo">Ação</h3>
-        <textarea id="obsInput" placeholder="Digite a justificativa..."></textarea>
+        <h3 id="modalTitulo" style="margin-top:0;">Ação Operacional</h3>
+        <textarea id="obsInput" placeholder="Digite detalhes ou justificativa..."></textarea>
         <button id="btnConfirmar" onclick="processarSolicitacao()" class="btn-action" style="width:100%; padding:15px;">ENVIAR</button>
         <button onclick="document.getElementById('modalAcao').style.display='none'" style="width:100%; background:none; border:none; color:gray; cursor:pointer; margin-top:10px;">Cancelar</button>
     </div>
@@ -94,7 +94,7 @@
 
             return `
                 <div class="card ${classePrio}" onclick="abrirFicha(${o.id})">
-                    <div style="display:flex; justify-content:space-between;">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
                         <span class="status-tag">${o.status_fluxo || 'Aberto'}</span>
                         <small style="color:#ccc;">#${o.id}</small>
                     </div>
@@ -115,26 +115,38 @@
         const o = JSON.parse(localStorage.getItem('ocorrencias') || '[]').find(x => x.id === id);
         if (!o) return;
 
+        // Mapeamento completo dos campos da tela de registro
         const labels = {
-            data: "Data", setor: "Setor", local: "Local",
-            prioridade: "Prioridade", descricao: "Descrição",
-            status_fluxo: "Status", ultima_obs: "Justificativa/Obs"
+            data: "Data da Ocorrência",
+            hora: "Horário",
+            setor: "Setor Responsável",
+            local: "Local Exato",
+            prioridade: "Nível de Prioridade",
+            descricao: "Descrição da Não Conformidade",
+            data_sugestao: "Data Sugestão de Conclusão", // Nome corrigido conforme pedido
+            status_fluxo: "Status Atual do Fluxo",
+            ultima_obs: "Histórico de Observações",
+            responsavel_login: "Registrado por"
         };
 
         let html = "";
         for (let chave in labels) {
-            if (o[chave]) {
-                html += `<div class="detalhe-item">
-                            <span class="detalhe-label">${labels[chave]}</span>
-                            <span class="detalhe-valor">${o[chave]}</span>
-                         </div>`;
-            }
+            // Verifica se o dado existe antes de exibir para evitar erros
+            const valor = o[chave] || "Não informado";
+            html += `<div class="detalhe-item">
+                        <span class="detalhe-label">${labels[chave]}</span>
+                        <span class="detalhe-valor">${valor}</span>
+                     </div>`;
         }
 
-        // Se houver foto, adiciona na ficha técnica
+        // Se houver foto, adiciona na ficha técnica com moldura
         if (o.foto) {
-            html += `<div class="detalhe-item"><span class="detalhe-label">EVIDÊNCIA FOTOGRÁFICA</span></div>
-                     <div class="foto-container"><img src="${o.foto}" class="foto-img"></div>`;
+            html += `<div class="detalhe-item" style="border-bottom:none;">
+                        <span class="detalhe-label">EVIDÊNCIA FOTOGRÁFICA</span>
+                     </div>
+                     <div class="foto-container">
+                        <img src="${o.foto}" class="foto-img" alt="Evidência">
+                     </div>`;
         }
 
         document.getElementById('conteudoCompleto').innerHTML = html;
@@ -149,18 +161,28 @@
 
     function processarSolicitacao() {
         const obs = document.getElementById('obsInput').value;
-        if (!obs) return alert("Preencha a justificativa.");
+        if (!obs) return alert("Por favor, preencha o campo de observação.");
+        
         let dados = JSON.parse(localStorage.getItem('ocorrencias'));
         let idx = dados.findIndex(o => o.id === idAtivo);
-        if (acaoAtiva !== 'Encaminhar') dados[idx].status_fluxo = "Solicitado: " + acaoAtiva;
+        
+        // Mantém o botão encaminhar sem travar o status final
+        if (acaoAtiva !== 'Encaminhar') {
+            dados[idx].status_fluxo = "Solicitado: " + acaoAtiva;
+        }
+        
         dados[idx].ultima_obs = obs;
         localStorage.setItem('ocorrencias', JSON.stringify(dados));
+        
         document.getElementById('modalAcao').style.display = 'none';
         document.getElementById('obsInput').value = "";
         carregar();
     }
 
-    window.onload = () => { if(!sessao) window.location.replace('login.html'); carregar(); };
+    window.onload = () => { 
+        if(!sessao) window.location.replace('login.html'); 
+        carregar(); 
+    };
 </script>
 </body>
 </html>
