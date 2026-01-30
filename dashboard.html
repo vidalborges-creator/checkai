@@ -46,7 +46,6 @@
         .btn-concluir { background: var(--success); }
         .btn-cancelar { background: var(--danger); }
 
-        /* Estilo para botões inativos */
         .btn-disabled {
             background-color: var(--gray) !important;
             cursor: not-allowed !important;
@@ -54,10 +53,15 @@
             pointer-events: none;
         }
 
+        /* Modal de Visualização Detalhada */
         .modal { display: none; position: fixed; z-index: 1000; left:0; top:0; width:100%; height:100%; background: rgba(0,0,0,0.7); align-items:center; justify-content:center; padding: 20px; }
-        .modal-box { background: white; padding: 30px; border-radius: 25px; width: 100%; max-width: 500px; }
+        .modal-box { background: white; padding: 30px; border-radius: 25px; width: 100%; max-width: 600px; max-height: 90vh; overflow-y: auto; }
         
-        .detail-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; }
+        /* Estilo da Tabela de Dados */
+        .detalhe-item { display: flex; flex-direction: column; padding: 12px 0; border-bottom: 1px solid #eee; }
+        .detalhe-label { font-size: 11px; font-weight: bold; color: var(--primary); text-transform: uppercase; margin-bottom: 4px; }
+        .detalhe-valor { font-size: 16px; color: var(--dark); font-weight: 500; }
+        
         textarea { width: 100%; height: 80px; border-radius: 10px; padding: 10px; margin: 10px 0; box-sizing: border-box; resize: none; }
     </style>
 </head>
@@ -75,17 +79,23 @@
 
 <div id="modalView" class="modal" onclick="this.style.display='none'">
     <div class="modal-box" onclick="event.stopPropagation()">
-        <h2 style="border-bottom: 2px solid var(--primary);">Ficha Técnica</h2>
-        <div id="conteudoDetalhes"></div>
-        <button onclick="document.getElementById('modalView').style.display='none'" class="btn-action btn-encaminhar" style="width:100%; margin-top:15px;">FECHAR</button>
+        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom: 2px solid var(--primary); padding-bottom: 10px; margin-bottom: 15px;">
+            <h2 style="margin:0; color: var(--dark);">Consulta de Registro</h2>
+            <span id="viewId" style="color: var(--gray); font-weight: bold;"></span>
+        </div>
+        
+        <div id="conteudoCompleto">
+            </div>
+
+        <button onclick="document.getElementById('modalView').style.display='none'" class="btn-action btn-encaminhar" style="width:100%; margin-top:20px; padding:15px; font-size: 16px;">FECHAR CONSULTA</button>
     </div>
 </div>
 
 <div id="modalAcao" class="modal">
     <div class="modal-box">
         <h3 id="modalTitulo">Ação</h3>
-        <textarea id="obsInput" placeholder="Descreva aqui os detalhes..."></textarea>
-        <button id="btnConfirmar" onclick="processarSolicitacao()" class="btn-action" style="width:100%; padding:15px;">ENVIAR SOLICITAÇÃO</button>
+        <textarea id="obsInput" placeholder="Justificativa..."></textarea>
+        <button id="btnConfirmar" onclick="processarSolicitacao()" class="btn-action" style="width:100%; padding:15px;">ENVIAR</button>
         <button onclick="document.getElementById('modalAcao').style.display='none'" style="width:100%; background:none; border:none; color:gray; cursor:pointer; margin-top:10px;">Cancelar</button>
     </div>
 </div>
@@ -105,19 +115,13 @@
         }
 
         lista.innerHTML = dados.map(o => {
-            // Verifica se o ciclo de vida da ocorrência foi finalizado (Aprovado pelo gestor)
-            const estaFinalizado = (o.status_fluxo === "Concluído" || o.status_fluxo === "Cancelado");
-            
-            // Verifica se há uma solicitação aguardando o gestor
-            const aguardandoAprovacao = o.status_fluxo && o.status_fluxo.startsWith("Solicitado");
-            
-            // Regra de bloqueio aplicada apenas aos botões de Concluir e Cancelar
-            const travarBotoesFinais = estaFinalizado || aguardandoAprovacao;
-            
+            const finalizado = (o.status_fluxo === "Concluído" || o.status_fluxo === "Cancelado");
+            const pendente = o.status_fluxo && o.status_fluxo.startsWith("Solicitado");
+            const travarBotoes = finalizado || pendente;
             const classePrio = o.prioridade === 'Alta' ? 'prio-alta' : (o.prioridade === 'Média' ? 'prio-media' : 'prio-baixa');
 
             return `
-                <div class="card ${classePrio}" onclick="abrirDetalhes(${o.id})">
+                <div class="card ${classePrio}" onclick="abrirConsultaCompleta(${o.id})">
                     <div style="display:flex; justify-content:space-between; align-items:center;">
                          <span class="status-tag">${o.status_fluxo || 'Aberto'}</span>
                          <small style="color:#ccc;">#${o.id}</small>
@@ -127,34 +131,55 @@
                     
                     <div class="actions-bar" onclick="event.stopPropagation()">
                         <button class="btn-action btn-encaminhar" onclick="abrirModalAcao('Encaminhar', ${o.id})">ENCAMINHAR</button>
-                        
-                        <button class="btn-action btn-concluir ${travarBotoesFinais ? 'btn-disabled' : ''}" onclick="abrirModalAcao('Concluir', ${o.id})">CONCLUIR</button>
-                        <button class="btn-action btn-cancelar ${travarBotoesFinais ? 'btn-disabled' : ''}" onclick="abrirModalAcao('Cancelar', ${o.id})">CANCELAR</button>
+                        <button class="btn-action btn-concluir ${travarBotoes ? 'btn-disabled' : ''}" onclick="abrirModalAcao('Concluir', ${o.id})">CONCLUIR</button>
+                        <button class="btn-action btn-cancelar ${travarBotoes ? 'btn-disabled' : ''}" onclick="abrirModalAcao('Cancelar', ${o.id})">CANCELAR</button>
                     </div>
                 </div>
             `;
         }).join('');
     }
 
-    function abrirDetalhes(id) {
-        const o = JSON.parse(localStorage.getItem('ocorrencias')).find(x => x.id === id);
+    function abrirConsultaCompleta(id) {
+        const ocorrencias = JSON.parse(localStorage.getItem('ocorrencias') || '[]');
+        const o = ocorrencias.find(x => x.id === id);
+        
+        if(!o) return;
+
+        document.getElementById('viewId').innerText = "#" + o.id;
+        const container = document.getElementById('conteudoCompleto');
+        
+        // Mapeia os campos para exibição amigável (mesmos da tela de registro)
+        const labels = {
+            data: "Data do Registro",
+            hora: "Hora do Registro",
+            setor: "Setor Responsável",
+            local: "Local da Ocorrência",
+            descricao: "Descrição da Não Conformidade",
+            prioridade: "Nível de Prioridade",
+            status_fluxo: "Situação Atual",
+            ultima_obs: "Última Observação/Justificativa",
+            responsavel_atual: "Registrado por"
+        };
+
         let html = "";
-        const camposObrigatorios = ['descricao', 'setor', 'local', 'prioridade', 'status_fluxo', 'ultima_obs'];
-        
-        camposObrigatorios.forEach(k => {
-            if(o[k]) {
-                html += `<div class="detail-row"><b>${k.replace('_', ' ').toUpperCase()}:</b> <span>${o[k]}</span></div>`;
+        for (let chave in labels) {
+            if (o[chave]) {
+                html += `
+                    <div class="detalhe-item">
+                        <span class="detalhe-label">${labels[chave]}</span>
+                        <span class="detalhe-valor">${o[chave]}</span>
+                    </div>`;
             }
-        });
-        
-        document.getElementById('conteudoDetalhes').innerHTML = html || "Sem detalhes adicionais.";
+        }
+
+        container.innerHTML = html;
         document.getElementById('modalView').style.display = 'flex';
     }
 
     function abrirModalAcao(tipo, id) {
         idAtivo = id; 
         acaoAtiva = tipo;
-        document.getElementById('modalTitulo').innerText = "Ação: " + tipo;
+        document.getElementById('modalTitulo').innerText = "Solicitar " + tipo;
         document.getElementById('btnConfirmar').style.background = 
             tipo === 'Concluir' ? 'var(--success)' : (tipo === 'Cancelar' ? 'var(--danger)' : 'var(--primary)');
         document.getElementById('modalAcao').style.display = 'flex';
@@ -162,31 +187,24 @@
 
     function processarSolicitacao() {
         const obs = document.getElementById('obsInput').value;
-        if (!obs) return alert("Por favor, preencha a justificativa.");
+        if (!obs) return alert("Justificativa obrigatória.");
 
         let dados = JSON.parse(localStorage.getItem('ocorrencias'));
         let idx = dados.findIndex(o => o.id === idAtivo);
         
-        // Se não for apenas um encaminhamento, muda o status para análise do gestor
         if (acaoAtiva !== 'Encaminhar') {
             dados[idx].status_fluxo = "Solicitado: " + acaoAtiva;
         }
         
         dados[idx].ultima_obs = obs;
-        dados[idx].responsavel_atual = sessao.nome;
-
         localStorage.setItem('ocorrencias', JSON.stringify(dados));
-        alert("Ação registrada com sucesso!");
         
         document.getElementById('modalAcao').style.display = 'none';
         document.getElementById('obsInput').value = "";
         carregar();
     }
 
-    window.onload = function() {
-        if (!sessao) window.location.replace('login.html');
-        carregar();
-    };
+    window.onload = () => { if(!sessao) window.location.replace('login.html'); carregar(); };
 </script>
 </body>
 </html>
