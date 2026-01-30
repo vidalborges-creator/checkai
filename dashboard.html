@@ -15,42 +15,46 @@
         .header-acao { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
         .btn-voltar { text-decoration: none; color: var(--primary); font-weight: bold; }
         
+        /* Botão Novo Registro */
+        .btn-novo { 
+            display: inline-block; background: #27ae60; color: white; text-decoration: none; 
+            padding: 12px 25px; border-radius: 10px; font-weight: bold; margin-bottom: 25px;
+            box-shadow: 0 4px 10px rgba(39, 174, 96, 0.3); transition: 0.3s;
+        }
+        .btn-novo:hover { transform: translateY(-2px); background: #219150; }
+
         /* Cards */
         .card { 
             background: white; border-radius: 20px; padding: 20px; margin-bottom: 15px; 
             box-shadow: 0 8px 20px rgba(0,0,0,0.05); border-left: 8px solid #ddd; cursor: pointer;
+            position: relative; transition: 0.3s;
         }
+        .card.reprovado { border: 2px solid var(--danger); background-color: #fff5f5; }
         .prio-Alta { border-left-color: var(--danger); }
         .prio-Média { border-left-color: var(--warning); }
         .prio-Baixa { border-left-color: var(--success); }
         
         .status-tag { font-size: 11px; font-weight: bold; text-transform: uppercase; padding: 4px 10px; border-radius: 6px; background: #eee; color: #666; }
-        
-        /* Barra de Ações */
+        .status-reprovado { background: var(--danger); color: white; }
+
+        /* Ações */
         .actions-bar { display: flex; gap: 10px; margin-top: 15px; padding-top: 15px; border-top: 1px solid #f0f0f0; }
-        .btn-action { flex: 1; border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: bold; color: white; font-size: 12px; }
+        .btn-action { flex: 1; border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: bold; color: white; font-size: 11px; }
         .btn-encaminhar { background: var(--primary); }
         .btn-concluir { background: var(--success); }
         .btn-cancelar { background: var(--danger); }
-        .btn-disabled { background-color: var(--gray) !important; cursor: not-allowed !important; opacity: 0.6; pointer-events: none; }
+        .btn-disabled { background-color: var(--gray) !important; cursor: not-allowed !important; opacity: 0.5; }
 
         /* Modais */
         .modal { display: none; position: fixed; z-index: 1000; left:0; top:0; width:100%; height:100%; background: rgba(0,0,0,0.8); align-items:center; justify-content:center; padding: 20px; }
-        .modal-box { background: white; padding: 30px; border-radius: 25px; width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto; box-sizing: border-box; }
+        .modal-box { background: white; padding: 25px; border-radius: 20px; width: 100%; max-width: 450px; max-height: 90vh; overflow-y: auto; }
         
-        /* Formulários */
-        .form-group { margin-bottom: 15px; text-align: left; }
-        .form-group label { display: block; font-size: 11px; font-weight: bold; color: var(--primary); margin-bottom: 5px; text-transform: uppercase; }
-        .form-group textarea, .form-group input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; font-family: inherit; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; font-size: 11px; font-weight: bold; color: var(--primary); margin-bottom: 5px; }
+        .form-group textarea, .form-group input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
         
-        .flag-box { display: flex; align-items: center; gap: 10px; background: #f8f9fa; padding: 12px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #eee; }
-        
-        /* Preview e Imagens */
-        #imgPreview { width: 100%; border-radius: 12px; margin-top: 10px; border: 2px solid var(--primary); max-height: 250px; object-fit: cover; }
-        .detalhe-item { display: flex; flex-direction: column; padding: 8px 0; border-bottom: 1px solid #f0f0f0; }
-        .detalhe-label { font-size: 10px; font-weight: bold; color: var(--primary); text-transform: uppercase; }
-        .detalhe-valor { font-size: 14px; color: var(--dark); font-weight: 500; }
-        .foto-ficha { width: 100%; border-radius: 15px; margin-top: 10px; border: 1px solid #ddd; }
+        #imgPreview { width: 100%; border-radius: 10px; margin-top: 10px; border: 2px solid var(--primary); max-height: 200px; object-fit: cover; }
+        .foto-ficha { width: 100%; border-radius: 10px; margin-top: 10px; }
     </style>
 </head>
 <body>
@@ -58,25 +62,28 @@
 <div class="container">
     <div class="header-acao">
         <a href="index.html" class="btn-voltar">← Voltar ao Menu</a>
-        <h2 style="color: var(--dark); margin:0;">Gestão Operacional</h2>
+        <h2 style="margin:0; font-size: 1.2rem;">Gestão Operacional</h2>
     </div>
+
+    <a href="cadastro.html" class="btn-novo">+ NOVO REGISTRO</a>
+
     <div id="listaOcorrencias"></div>
 </div>
 
 <div id="modalView" class="modal" onclick="this.style.display='none'">
     <div class="modal-box" onclick="event.stopPropagation()">
-        <h2 style="border-bottom: 2px solid var(--primary); padding-bottom:10px; margin-top:0;">Ficha Técnica</h2>
+        <h3 style="margin-top:0; border-bottom: 1px solid #eee; padding-bottom: 10px;">Detalhes</h3>
         <div id="conteudoFicha"></div>
-        <button onclick="document.getElementById('modalView').style.display='none'" class="btn-action btn-encaminhar" style="width:100%; margin-top:20px; padding:15px;">FECHAR FICHA</button>
+        <button onclick="document.getElementById('modalView').style.display='none'" class="btn-action btn-encaminhar" style="width:100%; margin-top:15px;">FECHAR</button>
     </div>
 </div>
 
 <div id="modalAcao" class="modal">
     <div class="modal-box">
-        <h3 id="modalTitulo" style="margin-top:0; color: var(--dark);">Ação</h3>
+        <h3 id="modalTitulo" style="margin-top:0;">Ação</h3>
         <div id="corpoAcao"></div>
-        <button id="btnConfirmar" onclick="validarEProcessar()" class="btn-action" style="width:100%; padding:15px; margin-top:10px; background:var(--success);">CONFIRMAR</button>
-        <button onclick="fecharModalAcao()" style="width:100%; background:none; border:none; color:gray; cursor:pointer; margin-top:10px;">Cancelar</button>
+        <button id="btnConfirmar" onclick="validarEProcessar()" class="btn-action" style="width:100%; padding:15px; margin-top:10px; background:var(--success);">CONFIRMAR ENVIO</button>
+        <button onclick="document.getElementById('modalAcao').style.display='none'" style="width:100%; background:none; border:none; color:gray; cursor:pointer; margin-top:10px;">Cancelar</button>
     </div>
 </div>
 
@@ -87,27 +94,30 @@
     function carregar() {
         const lista = document.getElementById('listaOcorrencias');
         const dados = JSON.parse(localStorage.getItem('ocorrencias') || '[]').reverse();
-        
+
         if (dados.length === 0) {
             lista.innerHTML = `<p style="text-align:center; color:gray; padding:50px;">Nenhum registro encontrado.</p>`;
             return;
         }
 
         lista.innerHTML = dados.map(o => {
-            const finalizado = (o.status_fluxo === "Concluído" || o.status_fluxo === "Cancelado");
-            const pendente = o.status_fluxo && o.status_fluxo.startsWith("Solicitado");
-            const bloquear = finalizado || pendente;
+            const aguardandoGestor = o.status_fluxo && o.status_fluxo.startsWith("Solicitado");
+            const finalizado = o.status_fluxo === "Concluído" || o.status_fluxo === "Cancelado";
+            const bloquear = aguardandoGestor || finalizado;
+            
+            const isReprovado = o.status_fluxo === "Reprovado pelo Gestor";
 
             return `
-                <div class="card prio-${o.prioridade}" onclick="abrirFicha(${o.id})">
+                <div class="card prio-${o.prioridade} ${isReprovado ? 'reprovado' : ''}" onclick="abrirFicha(${o.id})">
                     <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <span class="status-tag">${o.status_fluxo || 'Aberto'}</span>
-                        <small style="color:#ccc;">#${o.id}</small>
+                        <span class="status-tag ${isReprovado ? 'status-reprovado' : ''}">${o.status_fluxo || 'Aberto'}</span>
+                        <small>#${o.id}</small>
                     </div>
-                    <h3 style="margin:10px 0 5px 0;">${o.descricao}</h3>
-                    <p style="margin:0; font-size:13px; color:gray;">${o.setor} | ${o.local}</p>
+                    <h4 style="margin:10px 0 5px 0;">${o.descricao}</h4>
+                    <p style="margin:0; font-size:12px; color:gray;">${o.setor} | ${o.local}</p>
+                    
                     <div class="actions-bar" onclick="event.stopPropagation()">
-                        <button class="btn-action btn-encaminhar" onclick="abrirModalAcao('Encaminhar', ${o.id})">ENCAMINHAR</button>
+                        <button class="btn-action btn-encaminhar ${bloquear ? 'btn-disabled' : ''}" onclick="abrirModalAcao('Encaminhar', ${o.id})">ENCAMINHAR</button>
                         <button class="btn-action btn-concluir ${bloquear ? 'btn-disabled' : ''}" onclick="abrirModalAcao('Concluir', ${o.id})">CONCLUIR</button>
                         <button class="btn-action btn-cancelar ${bloquear ? 'btn-disabled' : ''}" onclick="abrirModalAcao('Cancelar', ${o.id})">CANCELAR</button>
                     </div>
@@ -119,175 +129,103 @@
     function abrirFicha(id) {
         const o = JSON.parse(localStorage.getItem('ocorrencias') || '[]').find(x => x.id === id);
         if(!o) return;
-        const labels = { data: "Data Registro", setor: "Setor", local: "Local", prioridade: "Prioridade", descricao: "Descrição", status_fluxo: "Status Atual" };
-        let html = "";
-        for(let k in labels) html += `<div class="detalhe-item"><span class="detalhe-label">${labels[k]}</span><span class="detalhe-valor">${o[k] || '---'}</span></div>`;
-        if(o.foto) html += `<div class="detalhe-item"><span class="detalhe-label">Evidência Inicial</span><img src="${o.foto}" class="foto-ficha"></div>`;
+        let html = `<p><strong>Prioridade:</strong> ${o.prioridade}</p>
+                    <p><strong>Descrição:</strong> ${o.descricao}</p>
+                    <p><strong>Status:</strong> ${o.status_fluxo || 'Aberto'}</p>`;
+        
+        if(o.status_fluxo === "Reprovado pelo Gestor") {
+            html += `<div style="background:#ffecec; padding:10px; border-radius:8px; color:red; font-size:13px;">
+                        <strong>MOTIVO DA REPROVAÇÃO:</strong><br>${o.ultima_obs || 'Verifique a evidência e tente novamente.'}
+                     </div>`;
+        }
+        
+        if(o.foto) html += `<p><strong>Foto Inicial:</strong><img src="${o.foto}" class="foto-ficha"></p>`;
         document.getElementById('conteudoFicha').innerHTML = html;
         document.getElementById('modalView').style.display = 'flex';
-    }
-
-    function fecharModalAcao() {
-        document.getElementById('modalAcao').style.display = 'none';
-        idAtivo = null;
-        acaoAtiva = "";
     }
 
     function abrirModalAcao(tipo, id) {
         idAtivo = id; 
         acaoAtiva = tipo;
         const corpo = document.getElementById('corpoAcao');
-        document.getElementById('modalTitulo').innerText = tipo + " Ocorrência";
+        document.getElementById('modalTitulo').innerText = tipo;
         
         if(tipo === 'Concluir') {
             corpo.innerHTML = `
                 <div class="form-group">
-                    <label>Justificativa da Conclusão (Obrigatório)</label>
-                    <textarea id="obsInput" placeholder="Descreva o que foi realizado..."></textarea>
+                    <label>JUSTIFICATIVA DA CONCLUSÃO (OBRIGATÓRIO)</label>
+                    <textarea id="obsInput" rows="3" placeholder="Relatório da conclusão..."></textarea>
                 </div>
-                <div class="flag-box">
-                    <input type="checkbox" id="fotoNA" onchange="toggleCamposFoto(this.checked)">
-                    <label for="fotoNA" style="font-size:12px; cursor:pointer; font-weight:bold;">Foto não aplicável nesta conclusão</label>
+                <div class="form-group">
+                    <label><input type="checkbox" id="fotoNA" onchange="document.getElementById('boxFoto').style.display=this.checked?'none':'block'"> Foto não aplicável nesta conclusão</label>
                 </div>
-                <div id="grupoInputFoto">
+                <div id="boxFoto">
                     <div class="form-group">
-                        <label>Foto da Ação de Melhoria (Obrigatório)</label>
-                        <input type="file" id="fotoMelhoria" accept="image/*" capture="camera" onchange="previewFoto(this)">
+                        <label>FOTO DA AÇÃO DE MELHORIA (OBRIGATÓRIO)</label>
+                        <input type="file" id="fotoFile" accept="image/*" capture="camera" onchange="previewImg(this)">
+                        <div id="areaPreview" style="display:none; text-align:center; margin-top:10px;"><img id="imgPreview"></div>
                     </div>
-                    <div id="containerPreview" style="display:none; text-align:center; margin-bottom:15px;">
-                        <span style="font-size:10px; font-weight:bold; color:var(--primary);">PREVIEW:</span>
-                        <img id="imgPreview" src="">
-                    </div>
-                </div>
-            `;
+                </div>`;
         } else if(tipo === 'Encaminhar') {
             corpo.innerHTML = `
-                <div class="form-group">
-                    <label>E-mail do Destinatário (Obrigatório)</label>
-                    <input type="email" id="emailDestino" placeholder="exemplo@empresa.com">
-                </div>
-                <div class="form-group">
-                    <label>Dados Complementares (Obrigatório)</label>
-                    <textarea id="dadosComp" placeholder="Informações adicionais..."></textarea>
-                </div>
-            `;
+                <div class="form-group"><label>E-MAIL DESTINATÁRIO</label><input type="email" id="emailInput"></div>
+                <div class="form-group"><label>DADOS COMPLEMENTARES</label><textarea id="obsInput"></textarea></div>`;
         } else {
-            corpo.innerHTML = `
-                <div class="form-group">
-                    <label>Motivo do Cancelamento (Obrigatório)</label>
-                    <textarea id="obsInput" placeholder="Justificativa..."></textarea>
-                </div>
-            `;
+            corpo.innerHTML = `<div class="form-group"><label>MOTIVO DO CANCELAMENTO</label><textarea id="obsInput"></textarea></div>`;
         }
         document.getElementById('modalAcao').style.display = 'flex';
     }
 
-    function toggleCamposFoto(isNA) {
-        const div = document.getElementById('grupoInputFoto');
-        if(div) div.style.display = isNA ? 'none' : 'block';
-    }
-
-    function previewFoto(input) {
-        const container = document.getElementById('containerPreview');
-        const imagem = document.getElementById('imgPreview');
+    function previewImg(input) {
         if (input.files && input.files[0]) {
             const reader = new FileReader();
-            reader.onload = (e) => {
-                imagem.src = e.target.result;
-                container.style.display = 'block';
-            }
+            reader.onload = e => {
+                document.getElementById('imgPreview').src = e.target.result;
+                document.getElementById('areaPreview').style.display = 'block';
+            };
             reader.readAsDataURL(input.files[0]);
         }
     }
 
-    // FUNÇÃO PARA COMPRIMIR IMAGEM (ESSENCIAL PARA NÃO TRAVAR O NAVEGADOR)
-    function comprimirImagem(file) {
-        return new Promise((resolve) => {
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onload = (event) => {
-                const img = new Image();
-                img.src = event.target.result;
-                img.onload = () => {
-                    const canvas = document.createElement('canvas');
-                    const MAX_WIDTH = 800; 
-                    let width = img.width;
-                    let height = img.height;
-
-                    if (width > MAX_WIDTH) {
-                        height *= MAX_WIDTH / width;
-                        width = MAX_WIDTH;
-                    }
-                    canvas.width = width;
-                    canvas.height = height;
-                    const ctx = canvas.getContext('2d');
-                    ctx.drawImage(img, 0, 0, width, height);
-                    resolve(canvas.toDataURL('image/jpeg', 0.7)); // Qualidade 70%
-                };
-            };
-        });
-    }
-
     async function validarEProcessar() {
         const btn = document.getElementById('btnConfirmar');
-        btn.disabled = true; // Evita cliques duplos
+        btn.disabled = true;
         btn.innerText = "PROCESSANDO...";
 
         let dados = JSON.parse(localStorage.getItem('ocorrencias') || '[]');
         let idx = dados.findIndex(o => o.id === idAtivo);
         
-        if (idx === -1) {
-            alert("Erro: Registro não encontrado.");
-            fecharModalAcao();
-            btn.disabled = false;
-            btn.innerText = "CONFIRMAR";
-            return;
-        }
-
         try {
-            if (acaoAtiva === 'Concluir') {
-                const obs = document.getElementById('obsInput').value.trim();
-                const fotoNA = document.getElementById('fotoNA').checked;
-                const inputFoto = document.getElementById('fotoMelhoria');
+            const obs = document.getElementById('obsInput').value.trim();
+            if(!obs) throw "A justificativa é obrigatória!";
 
-                if (!obs) throw "A justificativa é obrigatória.";
+            if(acaoAtiva === 'Concluir') {
+                const fotoNA = document.getElementById('fotoNA').checked;
+                const fileInput = document.getElementById('fotoFile');
+                
+                if(!fotoNA && fileInput.files.length === 0) throw "A foto é obrigatória ou marque 'Não aplicável'.";
                 
                 dados[idx].status_fluxo = "Solicitado: Concluir";
                 dados[idx].ultima_obs = obs;
-
-                if (!fotoNA) {
-                    if (!inputFoto.files || inputFoto.files.length === 0) throw "A foto é obrigatória (ou marque 'Não aplicável').";
-                    dados[idx].foto_conclusao = await comprimirImagem(inputFoto.files[0]);
-                }
-            } else if (acaoAtiva === 'Encaminhar') {
-                const email = document.getElementById('emailDestino').value.trim();
-                const comp = document.getElementById('dadosComp').value.trim();
-                if (!email || !comp) throw "E-mail e Dados Complementares são obrigatórios.";
+                if(!fotoNA) dados[idx].foto_conclusao = await comprimirImagem(fileInput.files[0]);
+            } else if(acaoAtiva === 'Encaminhar') {
+                const email = document.getElementById('emailInput').value;
+                if(!email) throw "E-mail obrigatório!";
                 dados[idx].status_fluxo = "Encaminhado";
-                dados[idx].ultima_obs = `E-mail: ${email} | Dados: ${comp}`;
+                dados[idx].ultima_obs = "Para: " + email + " | " + obs;
             } else {
-                const obs = document.getElementById('obsInput').value.trim();
-                if (!obs) throw "A justificativa é obrigatória.";
                 dados[idx].status_fluxo = "Solicitado: Cancelar";
                 dados[idx].ultima_obs = obs;
             }
 
-            // SALVAMENTO NO LOCALSTORAGE
             localStorage.setItem('ocorrencias', JSON.stringify(dados));
             alert("Ação registrada com sucesso!");
-            fecharModalAcao();
-            carregar();
-
-        } catch (erro) {
+            location.reload();
+        } catch(erro) {
             alert(erro);
-        } finally {
             btn.disabled = false;
-            btn.innerText = "CONFIRMAR";
+            btn.innerText = "CONFIRMAR ENVIO";
         }
     }
 
-    window.onload = carregar;
-</script>
-
-</body>
-</html>
+    function comprimirImagem(file)
