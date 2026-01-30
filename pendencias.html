@@ -3,62 +3,69 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aprovações Pendentes - CheckAi</title>
+    <title>Minhas Correções - CheckAi</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        :root { --primary: #3498db; --success: #2ecc71; --danger: #e74c3c; --dark: #2c3e50; --light: #f4f7f6; }
+        :root { --danger: #e74c3c; --primary: #3498db; --dark: #2c3e50; --light: #f4f7f6; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--light); margin: 0; padding: 20px; }
         .container { max-width: 800px; margin: auto; }
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .card { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-bottom: 15px; border-left: 5px solid var(--primary); }
-        .badge { padding: 4px 8px; border-radius: 5px; font-size: 11px; font-weight: bold; text-transform: uppercase; background: #eee; }
-        .actions { display: flex; gap: 10px; margin-top: 15px; }
-        .btn { flex: 1; padding: 10px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; text-decoration: none; text-align: center; font-size: 12px; }
-        .btn-corrigir { background: var(--danger); color: white; }
-        .btn-aprovar { background: var(--success); color: white; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
+        .card { background: white; padding: 20px; border-radius: 20px; box-shadow: 0 8px 15px rgba(0,0,0,0.05); margin-bottom: 20px; border-left: 8px solid var(--danger); }
+        .badge-reprovado { background: #ffeaea; color: var(--danger); padding: 5px 12px; border-radius: 8px; font-size: 10px; font-weight: bold; text-transform: uppercase; }
+        .motivo-box { background: #fff5f5; border: 1px solid #feb2b2; padding: 15px; border-radius: 12px; margin: 15px 0; color: #c53030; font-size: 14px; }
+        .btn-group { display: flex; gap: 10px; }
+        .btn { flex: 1; padding: 12px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; text-decoration: none; text-align: center; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .btn-corrigir { background: var(--primary); color: white; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <div class="header">
-        <h2>Aprovações Pendentes</h2>
-        <a href="index.html" style="text-decoration:none; color:var(--primary);">Voltar</a>
+        <h2 style="color: var(--dark);">Minhas Correções</h2>
+        <a href="index.html" style="text-decoration:none; color:var(--primary); font-weight:bold;">← Voltar</a>
     </div>
-    <div id="listaPendencias"></div>
+    <div id="listaCorrecoes"></div>
 </div>
 
 <script>
-    function carregarPendencias() {
-        const lista = document.getElementById('listaPendencias');
+    function carregarCorrecoes() {
+        const lista = document.getElementById('listaCorrecoes');
         const dados = JSON.parse(localStorage.getItem('ocorrencias') || '[]');
         
-        // Filtra apenas o que está solicitado (aguardando gestor)
-        const pendentes = dados.filter(o => o.status_fluxo && o.status_fluxo.startsWith("Solicitado"));
+        // Filtra apenas o que o gestor REPROVOU
+        const reprovados = dados.filter(o => o.status_fluxo === "REPROVADO PELO GESTOR");
 
-        if (pendentes.length === 0) {
-            lista.innerHTML = "<p style='text-align:center; color:gray;'>Nenhuma pendência no momento.</p>";
+        if (reprovados.length === 0) {
+            lista.innerHTML = `<div style="text-align:center; padding:50px; color:gray;">
+                <i class="fas fa-check-circle" style="font-size:40px; color:#2ecc71; margin-bottom:15px;"></i>
+                <p>Tudo certo! Você não tem correções pendentes.</p>
+            </div>`;
             return;
         }
 
-        lista.innerHTML = pendentes.map(o => `
+        lista.innerHTML = reprovados.map(o => `
             <div class="card">
-                <div style="display:flex; justify-content:space-between;">
-                    <span class="badge">${o.status_fluxo}</span>
-                    <small>#${o.id}</small>
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span class="badge-reprovado">Reprovado pelo Gestor</span>
+                    <small style="color:#ccc;">#${o.id}</small>
                 </div>
-                <h3 style="margin:10px 0 5px 0;">${o.descricao}</h3>
-                <p style="margin:0; font-size:13px; color:gray;"><b>Motivo:</b> ${o.ultima_obs}</p>
+                <h3 style="margin:15px 0 5px 0; color:var(--dark);">${o.descricao}</h3>
+                <p style="margin:0; font-size:13px; color:gray;">${o.setor} | ${o.local}</p>
                 
-                <div class="actions">
+                <div class="motivo-box">
+                    <strong>Motivo da Devolução:</strong><br>${o.ultima_obs || 'Sem observações detalhadas.'}
+                </div>
+                
+                <div class="btn-group">
                     <a href="dashboard.html?corrigir=${o.id}" class="btn btn-corrigir">
                         <i class="fas fa-tools"></i> IR CORRIGIR
                     </a>
-                    <button class="btn btn-aprovar" onclick="decisaoGestor(${o.id}, 'aprovar')">APROVAR</button>
                 </div>
             </div>
         `).join('');
     }
-
-    function decisaoGestor(id, acao) {
-        let dados = JSON.parse(localStorage.getItem('ocorrencias'));
+    window.onload = carregarCorrecoes;
+</script>
+</body>
+</html>
