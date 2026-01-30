@@ -3,112 +3,134 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aprovações - CheckAi Gestão</title>
+    <title>Aprovações Pendentes - CheckAi</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        :root { 
-            --primary: #2c3e50; --success: #2ecc71; --danger: #e74c3c; 
-            --warning: #f1c40f; --light: #f4f7f6; 
-        }
+        :root { --primary: #3498db; --success: #2ecc71; --danger: #e74c3c; --dark: #2c3e50; --light: #f4f7f6; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--light); margin: 0; padding: 20px; }
-        .container { max-width: 1000px; margin: auto; }
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; border-bottom: 2px solid #ddd; padding-bottom: 10px; }
+        .container { max-width: 800px; margin: auto; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
         
-        .card-aprovacao { 
-            background: white; border-radius: 15px; padding: 20px; margin-bottom: 20px; 
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1); display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
-        }
-        @media (max-width: 768px) { .card-aprovacao { grid-template-columns: 1fr; } }
-
-        .info-secao h4 { margin: 0 0 10px 0; color: var(--primary); text-transform: uppercase; font-size: 12px; }
-        .foto-container img { width: 100%; border-radius: 10px; border: 1px solid #ddd; cursor: pointer; }
+        /* Estilo do Card */
+        .card { background: white; padding: 20px; border-radius: 20px; box-shadow: 0 8px 15px rgba(0,0,0,0.05); margin-bottom: 20px; border-left: 8px solid var(--primary); cursor: pointer; transition: 0.2s; }
+        .card:hover { transform: translateY(-3px); box-shadow: 0 12px 20px rgba(0,0,0,0.1); }
+        .badge { background: #e3f2fd; color: var(--primary); padding: 5px 12px; border-radius: 8px; font-size: 10px; font-weight: bold; text-transform: uppercase; }
         
-        .btn-group { display: flex; gap: 10px; margin-top: 20px; }
-        .btn { flex: 1; border: none; padding: 15px; border-radius: 8px; color: white; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        .btn-group { display: flex; gap: 10px; margin-top: 15px; }
+        .btn { flex: 1; padding: 15px; border: none; border-radius: 12px; cursor: pointer; font-weight: bold; color: white; text-transform: uppercase; }
         .btn-aprovar { background: var(--success); }
         .btn-reprovar { background: var(--danger); }
-        .btn:hover { opacity: 0.8; transform: translateY(-2px); }
 
-        .badge { padding: 5px 10px; border-radius: 5px; font-size: 11px; font-weight: bold; }
-        .badge-pendente { background: #fff3cd; color: #856404; }
+        /* Estilo do Modal (Ficha Técnica) */
+        .modal { display: none; position: fixed; z-index: 1000; left:0; top:0; width:100%; height:100%; background: rgba(0,0,0,0.8); align-items:center; justify-content:center; padding: 20px; }
+        .modal-box { background: white; padding: 30px; border-radius: 25px; width: 100%; max-width: 550px; max-height: 90vh; overflow-y: auto; text-align: left; }
+        .detalhe-item { display: flex; flex-direction: column; padding: 10px 0; border-bottom: 1px solid #f0f0f0; }
+        .detalhe-label { font-size: 10px; font-weight: bold; color: var(--primary); text-transform: uppercase; margin-bottom: 4px; }
+        .detalhe-valor { font-size: 14px; color: var(--dark); font-weight: 600; }
+        .foto-img { width: 100%; border-radius: 15px; margin-top: 15px; border: 1px solid #ddd; }
+        .btn-fechar { width: 100%; background: var(--primary); color: white; border: none; padding: 15px; border-radius: 12px; font-weight: bold; margin-top: 20px; cursor: pointer; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <div class="header">
-        <h2><i class="fas fa-clipboard-check"></i> Aprovações Pendentes</h2>
-        <a href="index.html" style="text-decoration: none; color: var(--primary); font-weight: bold;">← Menu</a>
+        <h2 style="color: var(--dark);">Solicitações para Aprovação</h2>
+        <a href="index.html" style="text-decoration:none; color:var(--primary); font-weight:bold;">← Voltar</a>
     </div>
+    <div id="listaAprovacoes"></div>
+</div>
 
-    <div id="listaPendencias">
-        </div>
+<div id="modalView" class="modal" onclick="this.style.display='none'">
+    <div class="modal-box" onclick="event.stopPropagation()">
+        <h2 style="border-bottom: 2px solid var(--primary); padding-bottom:10px; margin-top:0; font-size: 20px;">Ficha Técnica</h2>
+        <div id="conteudoFicha"></div>
+        <button onclick="document.getElementById('modalView').style.display='none'" class="btn-fechar">FECHAR DETALHES</button>
+    </div>
 </div>
 
 <script>
-    function carregarPendencias() {
-        const lista = document.getElementById('listaPendencias');
+    function carregarAprovacoes() {
+        const lista = document.getElementById('listaAprovacoes');
         const dados = JSON.parse(localStorage.getItem('ocorrencias') || '[]');
         
-        // Filtra apenas o que está aguardando aprovação (Concluir ou Cancelar)
-        const pendentes = dados.filter(o => o.status_fluxo === "Solicitado: Concluir" || o.status_fluxo === "Solicitado: Cancelar");
+        // Filtro: Tudo que não é status final e não é "Aberto"
+        const pendentes = dados.filter(o => {
+            const s = o.status_fluxo ? o.status_fluxo.toLowerCase() : "";
+            return s !== "concluído" && s !== "cancelado" && s !== "aberto" && s !== "";
+        });
 
         if (pendentes.length === 0) {
-            lista.innerHTML = `<div style="text-align:center; padding:50px; color:gray;">
-                <i class="fas fa-check-circle fa-3x" style="color:#ddd; margin-bottom:10px;"></i>
-                <p>Nenhuma pendência para aprovação no momento.</p>
-            </div>`;
+            lista.innerHTML = `<p style="text-align:center; color:gray; margin-top:50px;">Nenhuma solicitação pendente.</p>`;
             return;
         }
 
         lista.innerHTML = pendentes.map(o => `
-            <div class="card-aprovacao">
-                <div class="info-secao">
-                    <span class="badge badge-pendente">${o.status_fluxo}</span>
-                    <h3 style="margin: 10px 0;">#${o.id} - ${o.descricao}</h3>
-                    <p><strong>Local:</strong> ${o.setor} | ${o.local}</p>
-                    <p><strong>Justificativa do Colaborador:</strong><br>
-                       <i style="color:#555;">"${o.ultima_obs || 'Sem observações'}"</i></p>
-                    
-                    <div class="btn-group">
-                        <button class="btn btn-aprovar" onclick="decisao(${o.id}, 'aprovar')">APROVAR</button>
-                        <button class="btn btn-reprovar" onclick="decisao(${o.id}, 'reprovar')">REPROVAR</button>
-                    </div>
+            <div class="card" onclick="abrirFicha(${o.id})">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span class="badge">${o.status_fluxo}</span>
+                    <small style="color:#ccc;">#${o.id}</small>
                 </div>
+                <h3 style="margin:15px 0 5px 0;">${o.descricao || 'Sem Título'}</h3>
+                <p style="margin:0; font-size:13px; color:gray;">${o.setor || ''} | ${o.local || ''}</p>
                 
-                <div class="foto-container">
-                    <h4>Evidência de Conclusão:</h4>
-                    ${o.foto_conclusao ? 
-                        `<img src="${o.foto_conclusao}" onclick="window.open(this.src)" title="Clique para ampliar">` : 
-                        `<div style="background:#eee; height:150px; display:flex; align-items:center; justify-content:center; border-radius:10px; color:#999;">Foto não aplicada</div>`
-                    }
+                <div class="btn-group" onclick="event.stopPropagation()">
+                    <button class="btn btn-aprovar" onclick="decisao(${o.id}, 'Aprovar')">APROVAR</button>
+                    <button class="btn btn-reprovar" onclick="decisao(${o.id}, 'Reprovar')">REPROVAR</button>
                 </div>
             </div>
         `).join('');
     }
 
-    function decisao(id, acao) {
-        let dados = JSON.parse(localStorage.getItem('ocorrencias') || '[]');
-        let idx = dados.findIndex(o => o.id === id);
+    // Função para abrir a ficha idêntica à do Dashboard
+    function abrirFicha(id) {
+        const o = JSON.parse(localStorage.getItem('ocorrencias') || '[]').find(x => x.id === id);
+        if(!o) return;
 
-        if (idx !== -1) {
-            if (acao === 'aprovar') {
-                // Se era pedido de cancelamento, vira Cancelado. Se era conclusão, vira Concluído.
-                dados[idx].status_fluxo = dados[idx].status_fluxo.includes("Cancelar") ? "Cancelado" : "Concluído";
-                alert("Ocorrência finalizada com sucesso!");
-            } else {
-                // REPROVAR: Volta para o colaborador
-                dados[idx].status_fluxo = "Reprovado pelo Gestor";
-                alert("Ocorrência reprovada. Ela voltou para o painel do colaborador para correção.");
-            }
-
-            localStorage.setItem('ocorrencias', JSON.stringify(dados));
-            carregarPendencias();
+        const labels = { 
+            data: "Data Registro", setor: "Setor", local: "Local", 
+            prioridade: "Prioridade", descricao: "Descrição", 
+            status_fluxo: "Status Atual", ultima_obs: "Justificativa do Operador"
+        };
+        
+        let html = "";
+        for(let k in labels) { 
+            html += `<div class="detalhe-item">
+                        <span class="detalhe-label">${labels[k]}</span>
+                        <span class="detalhe-valor">${o[k] || '---'}</span>
+                     </div>`; 
         }
+        
+        if(o.foto) {
+            html += `<div class="detalhe-item">
+                        <span class="detalhe-label">Evidência Fotográfica</span>
+                        <img src="${o.foto}" class="foto-img">
+                     </div>`;
+        }
+        
+        document.getElementById('conteudoFicha').innerHTML = html;
+        document.getElementById('modalView').style.display = 'flex';
     }
 
-    window.onload = carregarPendencias;
-</script>
+    function decisao(id, acao) {
+        let dados = JSON.parse(localStorage.getItem('ocorrencias'));
+        let idx = dados.findIndex(o => o.id === id);
+        
+        if(acao === 'Aprovar') {
+            dados[idx].status_fluxo = "Concluído";
+            alert("Solicitação aprovada!");
+        } else {
+            const motivo = prompt("Motivo da reprovação:");
+            if(!motivo) return;
+            dados[idx].status_fluxo = "REPROVADO PELO GESTOR";
+            dados[idx].ultima_obs = motivo;
+        }
+        
+        localStorage.setItem('ocorrencias', JSON.stringify(dados));
+        carregarAprovacoes();
+    }
 
+    window.onload = carregarAprovacoes;
+</script>
 </body>
 </html>
