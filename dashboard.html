@@ -6,43 +6,59 @@
     <title>Gestão Operacional - CheckAi</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        :root { --primary: #3498db; --success: #2ecc71; --warning: #f39c12; --danger: #e74c3c; --dark: #2c3e50; --light: #f4f7f6; --gray: #bdc3c7; }
+        :root { 
+            --primary: #3498db; --success: #2ecc71; --warning: #f39c12; 
+            --danger: #e74c3c; --dark: #2c3e50; --light: #f4f7f6; --gray: #bdc3c7;
+        }
         body { font-family: 'Segoe UI', sans-serif; background: var(--light); margin: 0; padding: 20px; }
         .container { max-width: 900px; margin: auto; }
-        .header-acao { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .aviso-filtro { background: #fff3cd; color: #856404; padding: 15px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #ffeeba; display: flex; justify-content: space-between; align-items: center; font-weight: bold; font-size: 13px; }
-        .card { background: white; border-radius: 20px; padding: 20px; margin-bottom: 15px; box-shadow: 0 8px 20px rgba(0,0,0,0.05); border-left: 8px solid #ddd; cursor: pointer; transition: 0.2s; }
-        .card:hover { transform: translateY(-3px); }
+        .header-acao { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
+        .btn-voltar { text-decoration: none; color: var(--primary); font-weight: bold; }
+        
+        /* Cards */
+        .card { 
+            background: white; border-radius: 20px; padding: 20px; margin-bottom: 15px; 
+            box-shadow: 0 8px 20px rgba(0,0,0,0.05); border-left: 8px solid #ddd; cursor: pointer;
+        }
         .prio-Alta { border-left-color: var(--danger); }
         .prio-Média { border-left-color: var(--warning); }
         .prio-Baixa { border-left-color: var(--success); }
-        .status-tag { font-size: 10px; font-weight: bold; text-transform: uppercase; padding: 4px 10px; border-radius: 6px; background: #eee; color: #666; }
+        
+        .status-tag { font-size: 11px; font-weight: bold; text-transform: uppercase; padding: 4px 10px; border-radius: 6px; background: #eee; color: #666; }
+        
+        /* Barra de Ações */
         .actions-bar { display: flex; gap: 10px; margin-top: 15px; padding-top: 15px; border-top: 1px solid #f0f0f0; }
-        .btn-action { flex: 1; border: none; padding: 10px; border-radius: 8px; cursor: pointer; font-weight: bold; color: white; font-size: 12px; }
+        .btn-action { flex: 1; border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: bold; color: white; font-size: 12px; }
         .btn-encaminhar { background: var(--primary); }
         .btn-concluir { background: var(--success); }
         .btn-cancelar { background: var(--danger); }
         .btn-disabled { background-color: var(--gray) !important; cursor: not-allowed !important; opacity: 0.6; pointer-events: none; }
-        
-        /* Modal Ficha Técnica */
+
+        /* Modais */
         .modal { display: none; position: fixed; z-index: 1000; left:0; top:0; width:100%; height:100%; background: rgba(0,0,0,0.8); align-items:center; justify-content:center; padding: 20px; }
-        .modal-box { background: white; padding: 30px; border-radius: 25px; width: 100%; max-width: 600px; max-height: 90vh; overflow-y: auto; }
+        .modal-box { background: white; padding: 30px; border-radius: 25px; width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto; box-sizing: border-box; }
+        
+        /* Formulários dentro do Modal */
+        .form-group { margin-bottom: 15px; text-align: left; }
+        .form-group label { display: block; font-size: 11px; font-weight: bold; color: var(--primary); margin-bottom: 5px; text-transform: uppercase; }
+        .form-group textarea, .form-group input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; font-family: inherit; }
+        
+        .flag-box { display: flex; align-items: center; gap: 10px; background: #f8f9fa; padding: 12px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #eee; }
+        
+        /* Detalhes da Ficha */
         .detalhe-item { display: flex; flex-direction: column; padding: 8px 0; border-bottom: 1px solid #f0f0f0; }
         .detalhe-label { font-size: 10px; font-weight: bold; color: var(--primary); text-transform: uppercase; }
         .detalhe-valor { font-size: 14px; color: var(--dark); font-weight: 500; }
-        .foto-img { width: 100%; border-radius: 15px; margin-top: 15px; border: 1px solid #ddd; }
+        .foto-img { width: 100%; border-radius: 15px; margin-top: 10px; border: 1px solid #ddd; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <div class="header-acao">
-        <a href="index.html" style="text-decoration:none; color:var(--primary); font-weight:bold;">← Voltar ao Menu</a>
+        <a href="index.html" class="btn-voltar">← Voltar ao Menu</a>
         <h2 style="color: var(--dark); margin:0;">Gestão Operacional</h2>
     </div>
-
-    <div id="msgFiltro"></div>
-    <a href="registro.html" style="background:var(--success); color:white; text-decoration:none; padding:15px 25px; border-radius:15px; font-weight:bold; display:inline-flex; align-items:center; gap:10px; margin-bottom:20px;">+ NOVO REGISTRO</a>
     
     <div id="listaOcorrencias"></div>
 </div>
@@ -51,26 +67,29 @@
     <div class="modal-box" onclick="event.stopPropagation()">
         <h2 style="border-bottom: 2px solid var(--primary); padding-bottom:10px; margin-top:0;">Ficha Técnica</h2>
         <div id="conteudoFicha"></div>
-        <button onclick="document.getElementById('modalView').style.display='none'" class="btn-action btn-encaminhar" style="width:100%; margin-top:20px; padding:15px;">FECHAR</button>
+        <button onclick="document.getElementById('modalView').style.display='none'" class="btn-action btn-encaminhar" style="width:100%; margin-top:20px; padding:15px;">FECHAR FICHA</button>
+    </div>
+</div>
+
+<div id="modalAcao" class="modal">
+    <div class="modal-box">
+        <h3 id="modalTitulo" style="margin-top:0; color: var(--dark);">Ação</h3>
+        
+        <div id="corpoAcao">
+            </div>
+
+        <button id="btnConfirmar" onclick="validarEProcessar()" class="btn-action" style="width:100%; padding:15px; margin-top:10px; background:var(--success);">CONFIRMAR</button>
+        <button onclick="document.getElementById('modalAcao').style.display='none'" style="width:100%; background:none; border:none; color:gray; cursor:pointer; margin-top:10px;">Cancelar</button>
     </div>
 </div>
 
 <script>
+    let idAtivo = null;
+    let acaoAtiva = "";
+
     function carregar() {
         const lista = document.getElementById('listaOcorrencias');
-        const msgFiltro = document.getElementById('msgFiltro');
-        let dados = JSON.parse(localStorage.getItem('ocorrencias') || '[]').reverse();
-
-        const urlParams = new URLSearchParams(window.location.search);
-        const idFiltro = urlParams.get('corrigir');
-
-        if (idFiltro) {
-            dados = dados.filter(o => o.id == idFiltro);
-            msgFiltro.innerHTML = `<div class="aviso-filtro">
-                <span>📍 Filtrado para Correção (#${idFiltro})</span>
-                <a href="dashboard.html" style="color:#856404; font-size:11px;">Ver Tudo</a>
-            </div>`;
-        }
+        const dados = JSON.parse(localStorage.getItem('ocorrencias') || '[]').reverse();
 
         if (dados.length === 0) {
             lista.innerHTML = `<p style="text-align:center; color:gray; padding:50px;">Nenhum registro encontrado.</p>`;
@@ -78,9 +97,9 @@
         }
 
         lista.innerHTML = dados.map(o => {
-            const isFinalizado = ["Concluído", "Cancelado"].includes(o.status_fluxo);
-            const isPendente = o.status_fluxo && o.status_fluxo.startsWith("Solicitado");
-            const bloquear = isFinalizado || isPendente;
+            const finalizado = (o.status_fluxo === "Concluído" || o.status_fluxo === "Cancelado");
+            const pendente = o.status_fluxo && o.status_fluxo.startsWith("Solicitado");
+            const bloquear = finalizado || pendente;
 
             return `
                 <div class="card prio-${o.prioridade}" onclick="abrirFicha(${o.id})">
@@ -88,13 +107,13 @@
                         <span class="status-tag">${o.status_fluxo || 'Aberto'}</span>
                         <small style="color:#ccc;">#${o.id}</small>
                     </div>
-                    <h3 style="margin:10px 0 5px 0; color:var(--dark);">${o.descricao}</h3>
+                    <h3 style="margin:10px 0 5px 0;">${o.descricao}</h3>
                     <p style="margin:0; font-size:13px; color:gray;">${o.setor} | ${o.local}</p>
                     
                     <div class="actions-bar" onclick="event.stopPropagation()">
-                        <button class="btn-action btn-encaminhar" onclick="alert('Encaminhado!')">ENCAMINHAR</button>
-                        <button class="btn-action btn-concluir ${bloquear ? 'btn-disabled' : ''}" onclick="solicitarStatus(${o.id}, 'Concluir')">CONCLUIR</button>
-                        <button class="btn-action btn-cancelar ${bloquear ? 'btn-disabled' : ''}" onclick="solicitarStatus(${o.id}, 'Cancelar')">CANCELAR</button>
+                        <button class="btn-action btn-encaminhar" onclick="abrirModalAcao('Encaminhar', ${o.id})">ENCAMINHAR</button>
+                        <button class="btn-action btn-concluir ${bloquear ? 'btn-disabled' : ''}" onclick="abrirModalAcao('Concluir', ${o.id})">CONCLUIR</button>
+                        <button class="btn-action btn-cancelar ${bloquear ? 'btn-disabled' : ''}" onclick="abrirModalAcao('Cancelar', ${o.id})">CANCELAR</button>
                     </div>
                 </div>
             `;
@@ -104,28 +123,101 @@
     function abrirFicha(id) {
         const o = JSON.parse(localStorage.getItem('ocorrencias') || '[]').find(x => x.id === id);
         if(!o) return;
-
-        const labels = { data: "Data Sugestão de Conclusão", setor: "Setor", local: "Local", prioridade: "Prioridade", descricao: "Descrição", status_fluxo: "Status Atual" };
+        const labels = { data: "Data Sugestão", setor: "Setor", local: "Local", prioridade: "Prioridade", descricao: "Descrição", status_fluxo: "Status" };
         let html = "";
-        for(let k in labels) { 
-            html += `<div class="detalhe-item"><span class="detalhe-label">${labels[k]}</span><span class="detalhe-valor">${o[k] || '---'}</span></div>`; 
-        }
+        for(let k in labels) html += `<div class="detalhe-item"><span class="detalhe-label">${labels[k]}</span><span class="detalhe-valor">${o[k] || '---'}</span></div>`;
         if(o.foto) html += `<div class="detalhe-item"><span class="detalhe-label">Evidência</span><img src="${o.foto}" class="foto-img"></div>`;
-        
         document.getElementById('conteudoFicha').innerHTML = html;
         document.getElementById('modalView').style.display = 'flex';
     }
 
-    function solicitarStatus(id, tipo) {
-        const obs = prompt("Justificativa para " + tipo + ":");
-        if(!obs) return;
+    function abrirModalAcao(tipo, id) {
+        idAtivo = id; 
+        acaoAtiva = tipo;
+        const corpo = document.getElementById('corpoAcao');
+        document.getElementById('modalTitulo').innerText = tipo + " Ocorrência";
+        
+        if(tipo === 'Concluir') {
+            corpo.innerHTML = `
+                <div class="form-group">
+                    <label>Justificativa da Conclusão (Obrigatório)</label>
+                    <textarea id="obsInput" placeholder="Descreva o que foi realizado..."></textarea>
+                </div>
+                <div class="flag-box">
+                    <input type="checkbox" id="fotoNA" onchange="document.getElementById('grupoInputFoto').style.display = this.checked ? 'none' : 'block'">
+                    <label for="fotoNA" style="font-size:12px; cursor:pointer;">Foto não aplicável nesta conclusão</label>
+                </div>
+                <div class="form-group" id="grupoInputFoto">
+                    <label>Foto da Ação de Melhoria (Obrigatório)</label>
+                    <input type="file" id="fotoMelhoria" accept="image/*" capture="camera">
+                </div>
+            `;
+        } else if(tipo === 'Encaminhar') {
+            corpo.innerHTML = `
+                <div class="form-group">
+                    <label>E-mail do Destinatário (Obrigatório)</label>
+                    <input type="email" id="emailDestino" placeholder="exemplo@empresa.com">
+                </div>
+                <div class="form-group">
+                    <label>Dados Complementares (Obrigatório)</label>
+                    <textarea id="dadosComp" placeholder="Informações adicionais para o e-mail..."></textarea>
+                </div>
+            `;
+        } else {
+            corpo.innerHTML = `
+                <div class="form-group">
+                    <label>Motivo do Cancelamento (Obrigatório)</label>
+                    <textarea id="obsInput" placeholder="Justificativa..."></textarea>
+                </div>
+            `;
+        }
+        document.getElementById('modalAcao').style.display = 'flex';
+    }
+
+    async function validarEProcessar() {
         let dados = JSON.parse(localStorage.getItem('ocorrencias'));
-        let idx = dados.findIndex(o => o.id === id);
-        dados[idx].status_fluxo = "Solicitado: " + tipo;
-        dados[idx].ultima_obs = obs;
+        let idx = dados.findIndex(o => o.id === idAtivo);
+        
+        if (acaoAtiva === 'Concluir') {
+            const obs = document.getElementById('obsInput').value;
+            const fotoNA = document.getElementById('fotoNA').checked;
+            const inputFoto = document.getElementById('fotoMelhoria');
+
+            if (!obs) return alert("A justificativa é obrigatória.");
+            if (!fotoNA && inputFoto.files.length === 0) return alert("A foto é obrigatória ou marque 'Não aplicável'.");
+
+            dados[idx].status_fluxo = "Solicitado: Concluir";
+            dados[idx].ultima_obs = obs;
+            if (!fotoNA) dados[idx].foto_conclusao = await toBase64(inputFoto.files[0]);
+
+        } else if (acaoAtiva === 'Encaminhar') {
+            const email = document.getElementById('emailDestino').value;
+            const comp = document.getElementById('dadosComp').value;
+
+            if (!email || !comp) return alert("E-mail e Dados Complementares são obrigatórios.");
+            
+            dados[idx].status_fluxo = "Encaminhado";
+            dados[idx].ultima_obs = `E-mail: ${email} | Dados: ${comp}`;
+            alert("Registro encaminhado com sucesso!");
+
+        } else {
+            const obs = document.getElementById('obsInput').value;
+            if (!obs) return alert("A justificativa é obrigatória.");
+            dados[idx].status_fluxo = "Solicitado: Cancelar";
+            dados[idx].ultima_obs = obs;
+        }
+
         localStorage.setItem('ocorrencias', JSON.stringify(dados));
+        document.getElementById('modalAcao').style.display = 'none';
         carregar();
     }
+
+    const toBase64 = file => new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = error => reject(error);
+    });
 
     window.onload = carregar;
 </script>
