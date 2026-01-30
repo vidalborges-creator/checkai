@@ -11,50 +11,45 @@
             --danger: #e74c3c; --dark: #2c3e50; --light: #f4f7f6; --gray: #bdc3c7;
         }
         body { font-family: 'Segoe UI', sans-serif; background: var(--light); margin: 0; padding: 20px; }
-        .container { max-width: 900px; margin: auto; }
-        .header-acao { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
+        .container { max-width: 900px; margin: auto; text-align: center; }
+        
+        .header-acao { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; text-align: left; }
         .btn-voltar { text-decoration: none; color: var(--primary); font-weight: bold; }
         
-        /* Botão Novo Registro */
+        /* Botão Novo Registro Centralizado */
         .btn-novo { 
-            display: inline-block; background: #27ae60; color: white; text-decoration: none; 
-            padding: 12px 25px; border-radius: 10px; font-weight: bold; margin-bottom: 25px;
-            box-shadow: 0 4px 10px rgba(39, 174, 96, 0.3); transition: 0.3s;
+            display: inline-block; background: #27ae60; color: white !important; text-decoration: none; 
+            padding: 15px 30px; border-radius: 12px; font-weight: bold; margin: 10px auto 30px auto;
+            box-shadow: 0 4px 15px rgba(39, 174, 96, 0.3); transition: 0.3s; border: none; cursor: pointer;
         }
-        .btn-novo:hover { transform: translateY(-2px); background: #219150; }
 
-        /* Cards */
+        /* Container da Lista para garantir que apareça */
+        #listaOcorrencias { width: 100%; text-align: left; display: block; min-height: 200px; }
+
+        /* Cards Estilizados conforme as imagens */
         .card { 
             background: white; border-radius: 20px; padding: 20px; margin-bottom: 15px; 
-            box-shadow: 0 8px 20px rgba(0,0,0,0.05); border-left: 8px solid #ddd; cursor: pointer;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.05); border-left: 10px solid #ddd; 
             position: relative; transition: 0.3s;
         }
-        .card.reprovado { border: 2px solid var(--danger); background-color: #fff5f5; }
+        .card.reprovado { border-left-color: var(--danger); background-color: #fffafa; }
         .prio-Alta { border-left-color: var(--danger); }
         .prio-Média { border-left-color: var(--warning); }
         .prio-Baixa { border-left-color: var(--success); }
         
-        .status-tag { font-size: 11px; font-weight: bold; text-transform: uppercase; padding: 4px 10px; border-radius: 6px; background: #eee; color: #666; }
-        .status-reprovado { background: var(--danger); color: white; }
+        .status-tag { font-size: 10px; font-weight: bold; text-transform: uppercase; padding: 5px 12px; border-radius: 6px; background: #f0f0f0; color: #777; }
+        .tag-reprovado { background: #fee2e2; color: #dc2626; }
 
-        /* Ações */
-        .actions-bar { display: flex; gap: 10px; margin-top: 15px; padding-top: 15px; border-top: 1px solid #f0f0f0; }
-        .btn-action { flex: 1; border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: bold; color: white; font-size: 11px; }
+        .actions-bar { display: flex; gap: 10px; margin-top: 15px; }
+        .btn-action { flex: 1; border: none; padding: 12px; border-radius: 10px; color: white; font-weight: bold; font-size: 11px; cursor: pointer; }
         .btn-encaminhar { background: var(--primary); }
         .btn-concluir { background: var(--success); }
         .btn-cancelar { background: var(--danger); }
-        .btn-disabled { background-color: var(--gray) !important; cursor: not-allowed !important; opacity: 0.5; }
+        .btn-disabled { background: #e0e0e0 !important; color: #999 !important; cursor: not-allowed; }
 
         /* Modais */
-        .modal { display: none; position: fixed; z-index: 1000; left:0; top:0; width:100%; height:100%; background: rgba(0,0,0,0.8); align-items:center; justify-content:center; padding: 20px; }
-        .modal-box { background: white; padding: 25px; border-radius: 20px; width: 100%; max-width: 450px; max-height: 90vh; overflow-y: auto; }
-        
-        .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; font-size: 11px; font-weight: bold; color: var(--primary); margin-bottom: 5px; }
-        .form-group textarea, .form-group input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
-        
-        #imgPreview { width: 100%; border-radius: 10px; margin-top: 10px; border: 2px solid var(--primary); max-height: 200px; object-fit: cover; }
-        .foto-ficha { width: 100%; border-radius: 10px; margin-top: 10px; }
+        .modal { display: none; position: fixed; z-index: 1000; left:0; top:0; width:100%; height:100%; background: rgba(0,0,0,0.7); align-items:center; justify-content:center; }
+        .modal-box { background: white; padding: 25px; border-radius: 20px; width: 90%; max-width: 450px; }
     </style>
 </head>
 <body>
@@ -62,7 +57,7 @@
 <div class="container">
     <div class="header-acao">
         <a href="index.html" class="btn-voltar">← Voltar ao Menu</a>
-        <h2 style="margin:0; font-size: 1.2rem;">Gestão Operacional</h2>
+        <h2 style="margin:0; color: var(--dark);">Gestão Operacional</h2>
     </div>
 
     <a href="cadastro.html" class="btn-novo">+ NOVO REGISTRO</a>
@@ -70,162 +65,37 @@
     <div id="listaOcorrencias"></div>
 </div>
 
-<div id="modalView" class="modal" onclick="this.style.display='none'">
-    <div class="modal-box" onclick="event.stopPropagation()">
-        <h3 style="margin-top:0; border-bottom: 1px solid #eee; padding-bottom: 10px;">Detalhes</h3>
-        <div id="conteudoFicha"></div>
-        <button onclick="document.getElementById('modalView').style.display='none'" class="btn-action btn-encaminhar" style="width:100%; margin-top:15px;">FECHAR</button>
-    </div>
-</div>
-
 <div id="modalAcao" class="modal">
     <div class="modal-box">
-        <h3 id="modalTitulo" style="margin-top:0;">Ação</h3>
+        <h3 id="modalTitulo">Ação</h3>
         <div id="corpoAcao"></div>
-        <button id="btnConfirmar" onclick="validarEProcessar()" class="btn-action" style="width:100%; padding:15px; margin-top:10px; background:var(--success);">CONFIRMAR ENVIO</button>
-        <button onclick="document.getElementById('modalAcao').style.display='none'" style="width:100%; background:none; border:none; color:gray; cursor:pointer; margin-top:10px;">Cancelar</button>
+        <button id="btnConfirmar" onclick="processarEnvio()" class="btn-action btn-concluir" style="width:100%; margin-top:15px; padding:18px;">CONFIRMAR</button>
+        <button onclick="document.getElementById('modalAcao').style.display='none'" style="background:none; border:none; color:gray; width:100%; margin-top:10px; cursor:pointer;">Cancelar</button>
     </div>
 </div>
 
 <script>
-    let idAtivo = null;
-    let acaoAtiva = "";
-
     function carregar() {
         const lista = document.getElementById('listaOcorrencias');
-        const dados = JSON.parse(localStorage.getItem('ocorrencias') || '[]').reverse();
+        const dadosRaw = localStorage.getItem('ocorrencias');
+        const dados = JSON.parse(dadosRaw || '[]').reverse();
 
         if (dados.length === 0) {
-            lista.innerHTML = `<p style="text-align:center; color:gray; padding:50px;">Nenhum registro encontrado.</p>`;
+            lista.innerHTML = `<div style="padding:40px; color:gray;">Nenhum registro encontrado.</div>`;
             return;
         }
 
         lista.innerHTML = dados.map(o => {
-            const aguardandoGestor = o.status_fluxo && o.status_fluxo.startsWith("Solicitado");
-            const finalizado = o.status_fluxo === "Concluído" || o.status_fluxo === "Cancelado";
-            const bloquear = aguardandoGestor || finalizado;
-            
-            const isReprovado = o.status_fluxo === "Reprovado pelo Gestor";
+            const status = o.status_fluxo || 'ABERTO';
+            const isReprovado = status === "Reprovado pelo Gestor";
+            const isFinalizado = status === "Concluído" || status === "Cancelado";
+            const isPendente = status.startsWith("Solicitado");
+            const bloquear = isFinalizado || isPendente;
 
             return `
-                <div class="card prio-${o.prioridade} ${isReprovado ? 'reprovado' : ''}" onclick="abrirFicha(${o.id})">
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <span class="status-tag ${isReprovado ? 'status-reprovado' : ''}">${o.status_fluxo || 'Aberto'}</span>
-                        <small>#${o.id}</small>
+                <div class="card prio-${o.prioridade} ${isReprovado ? 'reprovado' : ''}">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+                        <span class="status-tag ${isReprovado ? 'tag-reprovado' : ''}">${status}</span>
+                        <small style="color:#bbb;">#${o.id || '---'}</small>
                     </div>
-                    <h4 style="margin:10px 0 5px 0;">${o.descricao}</h4>
-                    <p style="margin:0; font-size:12px; color:gray;">${o.setor} | ${o.local}</p>
-                    
-                    <div class="actions-bar" onclick="event.stopPropagation()">
-                        <button class="btn-action btn-encaminhar ${bloquear ? 'btn-disabled' : ''}" onclick="abrirModalAcao('Encaminhar', ${o.id})">ENCAMINHAR</button>
-                        <button class="btn-action btn-concluir ${bloquear ? 'btn-disabled' : ''}" onclick="abrirModalAcao('Concluir', ${o.id})">CONCLUIR</button>
-                        <button class="btn-action btn-cancelar ${bloquear ? 'btn-disabled' : ''}" onclick="abrirModalAcao('Cancelar', ${o.id})">CANCELAR</button>
-                    </div>
-                </div>
-            `;
-        }).join('');
-    }
-
-    function abrirFicha(id) {
-        const o = JSON.parse(localStorage.getItem('ocorrencias') || '[]').find(x => x.id === id);
-        if(!o) return;
-        let html = `<p><strong>Prioridade:</strong> ${o.prioridade}</p>
-                    <p><strong>Descrição:</strong> ${o.descricao}</p>
-                    <p><strong>Status:</strong> ${o.status_fluxo || 'Aberto'}</p>`;
-        
-        if(o.status_fluxo === "Reprovado pelo Gestor") {
-            html += `<div style="background:#ffecec; padding:10px; border-radius:8px; color:red; font-size:13px;">
-                        <strong>MOTIVO DA REPROVAÇÃO:</strong><br>${o.ultima_obs || 'Verifique a evidência e tente novamente.'}
-                     </div>`;
-        }
-        
-        if(o.foto) html += `<p><strong>Foto Inicial:</strong><img src="${o.foto}" class="foto-ficha"></p>`;
-        document.getElementById('conteudoFicha').innerHTML = html;
-        document.getElementById('modalView').style.display = 'flex';
-    }
-
-    function abrirModalAcao(tipo, id) {
-        idAtivo = id; 
-        acaoAtiva = tipo;
-        const corpo = document.getElementById('corpoAcao');
-        document.getElementById('modalTitulo').innerText = tipo;
-        
-        if(tipo === 'Concluir') {
-            corpo.innerHTML = `
-                <div class="form-group">
-                    <label>JUSTIFICATIVA DA CONCLUSÃO (OBRIGATÓRIO)</label>
-                    <textarea id="obsInput" rows="3" placeholder="Relatório da conclusão..."></textarea>
-                </div>
-                <div class="form-group">
-                    <label><input type="checkbox" id="fotoNA" onchange="document.getElementById('boxFoto').style.display=this.checked?'none':'block'"> Foto não aplicável nesta conclusão</label>
-                </div>
-                <div id="boxFoto">
-                    <div class="form-group">
-                        <label>FOTO DA AÇÃO DE MELHORIA (OBRIGATÓRIO)</label>
-                        <input type="file" id="fotoFile" accept="image/*" capture="camera" onchange="previewImg(this)">
-                        <div id="areaPreview" style="display:none; text-align:center; margin-top:10px;"><img id="imgPreview"></div>
-                    </div>
-                </div>`;
-        } else if(tipo === 'Encaminhar') {
-            corpo.innerHTML = `
-                <div class="form-group"><label>E-MAIL DESTINATÁRIO</label><input type="email" id="emailInput"></div>
-                <div class="form-group"><label>DADOS COMPLEMENTARES</label><textarea id="obsInput"></textarea></div>`;
-        } else {
-            corpo.innerHTML = `<div class="form-group"><label>MOTIVO DO CANCELAMENTO</label><textarea id="obsInput"></textarea></div>`;
-        }
-        document.getElementById('modalAcao').style.display = 'flex';
-    }
-
-    function previewImg(input) {
-        if (input.files && input.files[0]) {
-            const reader = new FileReader();
-            reader.onload = e => {
-                document.getElementById('imgPreview').src = e.target.result;
-                document.getElementById('areaPreview').style.display = 'block';
-            };
-            reader.readAsDataURL(input.files[0]);
-        }
-    }
-
-    async function validarEProcessar() {
-        const btn = document.getElementById('btnConfirmar');
-        btn.disabled = true;
-        btn.innerText = "PROCESSANDO...";
-
-        let dados = JSON.parse(localStorage.getItem('ocorrencias') || '[]');
-        let idx = dados.findIndex(o => o.id === idAtivo);
-        
-        try {
-            const obs = document.getElementById('obsInput').value.trim();
-            if(!obs) throw "A justificativa é obrigatória!";
-
-            if(acaoAtiva === 'Concluir') {
-                const fotoNA = document.getElementById('fotoNA').checked;
-                const fileInput = document.getElementById('fotoFile');
-                
-                if(!fotoNA && fileInput.files.length === 0) throw "A foto é obrigatória ou marque 'Não aplicável'.";
-                
-                dados[idx].status_fluxo = "Solicitado: Concluir";
-                dados[idx].ultima_obs = obs;
-                if(!fotoNA) dados[idx].foto_conclusao = await comprimirImagem(fileInput.files[0]);
-            } else if(acaoAtiva === 'Encaminhar') {
-                const email = document.getElementById('emailInput').value;
-                if(!email) throw "E-mail obrigatório!";
-                dados[idx].status_fluxo = "Encaminhado";
-                dados[idx].ultima_obs = "Para: " + email + " | " + obs;
-            } else {
-                dados[idx].status_fluxo = "Solicitado: Cancelar";
-                dados[idx].ultima_obs = obs;
-            }
-
-            localStorage.setItem('ocorrencias', JSON.stringify(dados));
-            alert("Ação registrada com sucesso!");
-            location.reload();
-        } catch(erro) {
-            alert(erro);
-            btn.disabled = false;
-            btn.innerText = "CONFIRMAR ENVIO";
-        }
-    }
-
-    function comprimirImagem(file)
+                    <h3 style="margin:5px 0; color:#333; text-transform:uppercase;">${o.descricao}</h3>
