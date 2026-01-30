@@ -10,36 +10,22 @@
             --primary: #3498db; --success: #2ecc71; --warning: #f39c12; 
             --danger: #e74c3c; --dark: #2c3e50; --light: #f4f7f6; --gray: #bdc3c7;
         }
-
         body { font-family: 'Segoe UI', sans-serif; background: var(--light); margin: 0; padding: 20px; }
         .container { max-width: 900px; margin: auto; }
-        
-        /* Cabeçalho */
         .header-acao { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
         .btn-voltar { text-decoration: none; color: var(--primary); font-weight: bold; }
-        
         .btn-novo { 
             background: var(--success); color: white; text-decoration: none; padding: 15px 25px; 
             border-radius: 15px; font-weight: bold; display: inline-flex; align-items: center; gap: 10px; margin-bottom: 20px;
         }
-
-        /* Cards da Lista */
         .card { 
             background: white; border-radius: 20px; padding: 20px; margin-bottom: 15px; 
             box-shadow: 0 8px 20px rgba(0,0,0,0.05); border-left: 8px solid #ddd; cursor: pointer;
-            transition: transform 0.2s;
         }
-        .card:hover { transform: translateY(-3px); }
-
         .prio-alta { border-left-color: var(--danger); }
         .prio-media { border-left-color: var(--warning); }
         .prio-baixa { border-left-color: var(--success); }
-
-        .status-tag { 
-            font-size: 11px; font-weight: bold; text-transform: uppercase; 
-            padding: 4px 10px; border-radius: 6px; background: #eee; color: #666;
-        }
-
+        .status-tag { font-size: 11px; font-weight: bold; text-transform: uppercase; padding: 4px 10px; border-radius: 6px; background: #eee; color: #666; }
         .actions-bar { display: flex; gap: 10px; margin-top: 15px; padding-top: 15px; border-top: 1px solid #f0f0f0; }
         .btn-action { flex: 1; border: none; padding: 10px; border-radius: 8px; cursor: pointer; font-weight: bold; color: white; font-size: 12px; }
         .btn-encaminhar { background: var(--primary); }
@@ -47,20 +33,14 @@
         .btn-cancelar { background: var(--danger); }
         .btn-disabled { background-color: var(--gray) !important; cursor: not-allowed !important; opacity: 0.6; pointer-events: none; }
 
-        /* Modal de Consulta Detalhada */
+        /* Modal de Visualização */
         .modal { display: none; position: fixed; z-index: 1000; left:0; top:0; width:100%; height:100%; background: rgba(0,0,0,0.8); align-items:center; justify-content:center; padding: 20px; }
-        .modal-box { background: white; padding: 30px; border-radius: 25px; width: 100%; max-width: 650px; max-height: 90vh; overflow-y: auto; position: relative; }
-        
-        /* Itens da Ficha */
+        .modal-box { background: white; padding: 30px; border-radius: 25px; width: 100%; max-width: 600px; max-height: 90vh; overflow-y: auto; box-sizing: border-box; }
         .detalhe-item { display: flex; flex-direction: column; padding: 10px 0; border-bottom: 1px solid #eee; }
-        .detalhe-label { font-size: 10px; font-weight: bold; color: var(--primary); text-transform: uppercase; margin-bottom: 2px; }
-        .detalhe-valor { font-size: 15px; color: var(--dark); font-weight: 500; }
-        
-        /* Área da Foto no Modal */
-        .foto-container { margin-top: 20px; border-radius: 15px; overflow: hidden; border: 2px solid #eee; background: #f9f9f9; text-align: center; }
-        .foto-visualizacao { max-width: 100%; height: auto; display: block; margin: auto; }
-        .foto-vazia { padding: 40px; color: #bbb; font-style: italic; }
-
+        .detalhe-label { font-size: 10px; font-weight: bold; color: var(--primary); text-transform: uppercase; }
+        .detalhe-valor { font-size: 15px; color: var(--dark); font-weight: 500; margin-top: 2px; }
+        .foto-container { margin-top: 15px; border-radius: 15px; overflow: hidden; border: 1px solid #ddd; }
+        .foto-img { width: 100%; height: auto; display: block; }
         textarea { width: 100%; height: 80px; border-radius: 10px; padding: 10px; margin: 10px 0; box-sizing: border-box; resize: none; border: 1px solid #ddd; }
     </style>
 </head>
@@ -71,30 +51,23 @@
         <a href="index.html" class="btn-voltar">← Voltar ao Menu</a>
         <h2 style="color: var(--dark); margin:0;">Gestão Operacional</h2>
     </div>
-
     <a href="registro.html" class="btn-novo">+ NOVO REGISTRO</a>
     <div id="listaOcorrencias"></div>
 </div>
 
 <div id="modalView" class="modal" onclick="this.style.display='none'">
     <div class="modal-box" onclick="event.stopPropagation()">
-        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom: 2px solid var(--primary); padding-bottom: 10px; margin-bottom: 15px;">
-            <h2 style="margin:0; color: var(--dark); font-size: 20px;">Ficha da Ocorrência</h2>
-            <span id="viewId" style="color: var(--gray); font-weight: bold;"></span>
-        </div>
-        
-        <div id="conteudoCompleto">
-            </div>
-
-        <button onclick="document.getElementById('modalView').style.display='none'" class="btn-action btn-encaminhar" style="width:100%; margin-top:25px; padding:15px; font-size: 16px;">FECHAR CONSULTA</button>
+        <h2 style="border-bottom: 2px solid var(--primary); padding-bottom:10px; margin-top:0;">Ficha Técnica</h2>
+        <div id="conteudoCompleto"></div>
+        <button onclick="document.getElementById('modalView').style.display='none'" class="btn-action btn-encaminhar" style="width:100%; margin-top:20px; padding:15px;">FECHAR</button>
     </div>
 </div>
 
 <div id="modalAcao" class="modal">
     <div class="modal-box" style="max-width: 400px;">
-        <h3 id="modalTitulo" style="margin-top:0;">Solicitar Ação</h3>
-        <textarea id="obsInput" placeholder="Justificativa..."></textarea>
-        <button id="btnConfirmar" onclick="processarSolicitacao()" class="btn-action" style="width:100%; padding:15px;">ENVIAR AO GESTOR</button>
+        <h3 id="modalTitulo">Ação</h3>
+        <textarea id="obsInput" placeholder="Digite a justificativa..."></textarea>
+        <button id="btnConfirmar" onclick="processarSolicitacao()" class="btn-action" style="width:100%; padding:15px;">ENVIAR</button>
         <button onclick="document.getElementById('modalAcao').style.display='none'" style="width:100%; background:none; border:none; color:gray; cursor:pointer; margin-top:10px;">Cancelar</button>
     </div>
 </div>
@@ -109,9 +82,85 @@
         const dados = JSON.parse(localStorage.getItem('ocorrencias') || '[]').reverse();
 
         if (dados.length === 0) {
-            lista.innerHTML = `<p style="text-align:center; color:gray; padding: 50px;">Nenhum registro encontrado.</p>`;
+            lista.innerHTML = `<p style="text-align:center; color:gray; padding:50px;">Nenhum registro encontrado.</p>`;
             return;
         }
 
         lista.innerHTML = dados.map(o => {
-            const finalizado
+            const finalizado = (o.status_fluxo === "Concluído" || o.status_fluxo === "Cancelado");
+            const pendente = o.status_fluxo && o.status_fluxo.startsWith("Solicitado");
+            const travarAcoes = finalizado || pendente;
+            const classePrio = o.prioridade === 'Alta' ? 'prio-alta' : (o.prioridade === 'Média' ? 'prio-media' : 'prio-baixa');
+
+            return `
+                <div class="card ${classePrio}" onclick="abrirFicha(${o.id})">
+                    <div style="display:flex; justify-content:space-between;">
+                        <span class="status-tag">${o.status_fluxo || 'Aberto'}</span>
+                        <small style="color:#ccc;">#${o.id}</small>
+                    </div>
+                    <h3 style="margin:10px 0 5px 0;">${o.descricao || 'Sem Descrição'}</h3>
+                    <p style="margin:0; font-size:13px; color:gray;">${o.setor || 'N/A'} | ${o.local || 'N/A'}</p>
+                    
+                    <div class="actions-bar" onclick="event.stopPropagation()">
+                        <button class="btn-action btn-encaminhar" onclick="abrirModalAcao('Encaminhar', ${o.id})">ENCAMINHAR</button>
+                        <button class="btn-action btn-concluir ${travarAcoes ? 'btn-disabled' : ''}" onclick="abrirModalAcao('Concluir', ${o.id})">CONCLUIR</button>
+                        <button class="btn-action btn-cancelar ${travarAcoes ? 'btn-disabled' : ''}" onclick="abrirModalAcao('Cancelar', ${o.id})">CANCELAR</button>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    function abrirFicha(id) {
+        const o = JSON.parse(localStorage.getItem('ocorrencias') || '[]').find(x => x.id === id);
+        if (!o) return;
+
+        const labels = {
+            data: "Data", setor: "Setor", local: "Local",
+            prioridade: "Prioridade", descricao: "Descrição",
+            status_fluxo: "Status", ultima_obs: "Justificativa/Obs"
+        };
+
+        let html = "";
+        for (let chave in labels) {
+            if (o[chave]) {
+                html += `<div class="detalhe-item">
+                            <span class="detalhe-label">${labels[chave]}</span>
+                            <span class="detalhe-valor">${o[chave]}</span>
+                         </div>`;
+            }
+        }
+
+        // Se houver foto, adiciona na ficha técnica
+        if (o.foto) {
+            html += `<div class="detalhe-item"><span class="detalhe-label">EVIDÊNCIA FOTOGRÁFICA</span></div>
+                     <div class="foto-container"><img src="${o.foto}" class="foto-img"></div>`;
+        }
+
+        document.getElementById('conteudoCompleto').innerHTML = html;
+        document.getElementById('modalView').style.display = 'flex';
+    }
+
+    function abrirModalAcao(tipo, id) {
+        idAtivo = id; acaoAtiva = tipo;
+        document.getElementById('modalTitulo').innerText = "Solicitar " + tipo;
+        document.getElementById('modalAcao').style.display = 'flex';
+    }
+
+    function processarSolicitacao() {
+        const obs = document.getElementById('obsInput').value;
+        if (!obs) return alert("Preencha a justificativa.");
+        let dados = JSON.parse(localStorage.getItem('ocorrencias'));
+        let idx = dados.findIndex(o => o.id === idAtivo);
+        if (acaoAtiva !== 'Encaminhar') dados[idx].status_fluxo = "Solicitado: " + acaoAtiva;
+        dados[idx].ultima_obs = obs;
+        localStorage.setItem('ocorrencias', JSON.stringify(dados));
+        document.getElementById('modalAcao').style.display = 'none';
+        document.getElementById('obsInput').value = "";
+        carregar();
+    }
+
+    window.onload = () => { if(!sessao) window.location.replace('login.html'); carregar(); };
+</script>
+</body>
+</html>
